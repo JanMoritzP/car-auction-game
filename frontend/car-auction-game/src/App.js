@@ -1,6 +1,5 @@
-import logo from './logo.svg';
+import React from 'react'
 import './App.css';
-import './Components'
 import { TestDB } from './Components/TestDB';
 
 function App() {
