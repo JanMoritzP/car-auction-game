@@ -1,13 +1,37 @@
-import React from 'react'
+import React, { useState } from 'react'
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import './App.css';
 import { TestDB } from './Components/TestDB';
+import { MainPage } from './Components/MainPage'
+import { Inventory } from './Components/Inventory'
+import { Shop } from './Components/Shop'
+import { Login } from './Components/Login'
+import { useToken } from './Hooks/useToken'
+
 
 function App() {
+  const { token, setToken } = useToken()
+
+  
+  if(!token) {
+    return <Login setToken={setToken}/>
+  }
   return (
-    <div>
-      <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Nesciunt veniam sint dolorem unde voluptas repellendus suscipit ut nisi odit ullam!</p>
-      <p>Sed exercitationem est in aperiam asperiores, maiores dolorum saepe iste beatae aspernatur libero ducimus similique labore, laborum, eligendi soluta suscipit.</p>
-      <TestDB/>
+    <div class="wrapper">
+      <h1>Car auction game</h1>
+      <BrowserRouter>
+        <Switch>
+          <Route path="/mainpage">
+            <MainPage/>
+          </Route>
+          <Route path="/inventory">
+            <Inventory/>
+          </Route>
+          <Route path="/shop">
+            <Shop/>
+          </Route>
+        </Switch>
+      </BrowserRouter>  
     </div>
   );
 }
