@@ -1,25 +1,51 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
+import Inventory from './Components/Inventory'
+import Dashboard from './Components/Dashboard'
+import Login from './Components/Login'
+import Signup from './Components/Signup'
+import Admin from './Components/Admin'
+import Navbar from './Components/Navbar'
+import useToken from './Functions/useToken'
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+
+    const { token, setToken } = useToken()
+    const [signup, setSignup] = useState(false)
+
+    function logout() {
+        setToken(false)
+        localStorage.clear()
+    }
+
+    if(signup) {
+        return <Signup setToken={setToken} setSignup={setSignup}/>
+    }
+
+    if(!token) {
+        return <Login setToken={setToken} setSignup={setSignup}/>
+    }
+
+    return(
+        <div class="wrapper">
+            <h1>Car Auction Game</h1>
+            <BrowserRouter>
+                <Navbar />
+                <Switch>
+                    <Route path="/dashboard">
+                        <Dashboard />
+                    </Route>
+                    <Route path="/inventory">
+                        <Inventory />
+                    </Route>
+                    <Route path="/admin">
+                        <Admin />
+                    </Route>
+                </Switch>
+            </BrowserRouter>
+            <button onClick={logout} style={{position:"absolute", bottom:"2rem", left:"2rem"}}>Logout</button>
+        </div>
+    )
 }
 
-export default App;
+export default App
