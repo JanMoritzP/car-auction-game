@@ -12,12 +12,11 @@ const io = require('socket.io')(http, {
 
 
 app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({extended: true}))
+//app.use(bodyParser.urlencoded({extended: true}))
 app.use(cors())
 app.options('*', cors())
 const User = require('./Schema/Users')
 const Bid = require('./Schema/Bids')
-const { clear } = require('console')
 
 mongoose.connect('mongodb://localhost:27017/cagDB', {useNewUrlParser:true, useUnifiedTopology:true})
 
@@ -50,7 +49,16 @@ app.post('/login', (req, res) => {
 })
 
 app.post('/signup', (req, res) => {
-    let newUser = new User()
+    
+    User.findOne({username: req.body.username}, (err, user) => {
+        if(user) {
+            return res.status(400).send({
+                message: "This username is already taken"
+            })
+        }
+    })
+
+    let newUser = new User()    
 
     newUser.username = req.body.username
     newUser.priority = 1
@@ -95,16 +103,49 @@ app.post('/createBid', (req, res) => {
 })
 
 app.post('/bid', (req, res) => {
-    if(req.header.query.equals("registerBid")) {
+    if(req.headers.query.equals("registerBid")) {
         
     }
 
 
 
-    if(req.header.query.equals("bid")) {
+    if(req.headers.query.equals("bid")) {
 
     }
 })
+
+app.post('/priority', (req, res) => {
+    if(!User.findOne({token: req.body.token})) {
+        return res.status(404).send({
+            message: "This token is not recognized"
+        })
+    }
+    else {
+        User.findOne({token: req.body.token}, (err, user) => {
+            return res.status(200).send({
+                priority: user.priority
+            })
+        })
+    }
+})
+
+app.post('/token', (req, res) => {
+    if(!User.findOne({token: req.body.token})) {
+        return res.status(404).send({
+            message: "This token is not recognized",
+            valid: false
+        })
+    }
+    else {
+        return res.status(200).send({
+            message: "This token is recognized",
+            valid: true
+        })
+    }
+})
+
+
+
 
 let interval;
 
@@ -119,9 +160,11 @@ io.on("connection", (socket) => {
 })
 
 const serveBids = socket => {
-    Bid.find({"object.name": {$exists: true}}, (err, bids) => {
-        socket.emit("getBids", bids)
-    })
+    for (const priority in [1, 2, 3, 4, 5]) {
+        Bid.find({"priority": priority, "bidders": {$exists: true}}, (err, bids) => {
+            socket.emit("getBids" + priority.toString(), bids)
+        })
+    }
 }
 
 

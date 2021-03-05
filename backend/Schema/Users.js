@@ -24,7 +24,7 @@ UserSchema.methods.validatePassword = function(password) {
 }
 
 UserSchema.methods.createToken = function() {
-    this.token = crypto.randomBytes(128)
+    this.token = crypto.randomBytes(128).toString('hex')
     return this.token
 }
 

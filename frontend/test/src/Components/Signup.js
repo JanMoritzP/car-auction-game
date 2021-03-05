@@ -31,8 +31,13 @@ export default function Signup({setToken, setSignup}) {
         else {
             setError(<p>Signup should work</p>)
             const data = await signup({username, password})
-            setToken(data.token)
-            setSignup(false)
+            if(data.status === 400) {
+                setError(<p>This username is already taken</p>)
+            } 
+            else {
+                setToken(data.token)
+                setSignup(false)
+            }
         }
     }
 
