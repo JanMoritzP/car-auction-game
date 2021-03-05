@@ -8,17 +8,10 @@ const BidSchema = mongoose.Schema({
     maxWatchers: Number,
     bidPrice: Number,
     currentBidder: String,
-    object: {
-        name: String,
-        basePrice: Number,
-        status: {
-            motor: Boolean,
-            exhaust: Boolean,
-            paint: Boolean,
-            suspension: Boolean,
-            gearing: Boolean
-        }
-    }
+    runningTime: Number,
+    runningTimeIncrement: Number,
+    incrementBound: Number,
+    car: String
 })
 
 BidSchema.methods.bid = function(price, bidder) {

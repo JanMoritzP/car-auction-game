@@ -7,7 +7,10 @@ const UserSchema = mongoose.Schema({
     hash: String,
     salt: String, 
     token: String,
-    priority: Number
+    priority: Number,
+    inventory: [String],
+    bidHistory: [String],
+    activeBids: [String]
 })
 
 UserSchema.methods.setPassword = function(password) {
