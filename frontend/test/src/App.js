@@ -33,10 +33,10 @@ function App() {
                 <Navbar />
                 <Switch>
                     <Route path="/dashboard">
-                        <Dashboard />
+                        <Dashboard setToken={setToken}/>
                     </Route>
                     <Route path="/inventory">
-                        <Inventory />
+                        <Inventory setToken={setToken}/>
                     </Route>
                     <Route path="/admin">
                         <Admin />

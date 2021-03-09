@@ -1,0 +1,16 @@
+.parts {
+    position: absolute;
+    top: 10%;
+    left: 50%;
+    right: 10%;
+    bottom: 10%;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+}
+
+.part {
+    background-color: lightgray;
+    box-shadow: 0 0 5px grey;
+    margin: 0.5rem;
+}
