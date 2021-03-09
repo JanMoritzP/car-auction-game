@@ -8,7 +8,7 @@ const BidSchema = mongoose.Schema({
     maxWatchers: Number,
     bidPrice: Number,
     currentBidder: String,
-    runningTime: Number,
+    timeLeft: Number,
     runningTimeIncrement: Number,
     incrementBound: Number,
     car: String

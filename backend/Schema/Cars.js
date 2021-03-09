@@ -1,11 +1,10 @@
 const mongoose = require('mongoose')
-import './Parts'
 
 const CarSchema = mongoose.Schema({
     name: String,
     rarity: Number,
     price: Number,
-    Status: {
+    status: {
         motor: String,
         suspension: String,
         transmission: String,
