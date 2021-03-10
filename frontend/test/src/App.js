@@ -6,7 +6,10 @@ import Login from './Components/Login'
 import Signup from './Components/Signup'
 import Admin from './Components/Admin'
 import Navbar from './Components/Navbar'
+import StatusBar from './Components/StatusBar'
 import useToken from './Functions/useToken'
+
+import './Components/css/App.css'
 
 function App() {
 
@@ -28,9 +31,10 @@ function App() {
 
     return(
         <div class="wrapper">
-            <h1>Car Auction Game</h1>
+            <h1 class="header">Car Auction Game</h1>
             <BrowserRouter>
                 <Navbar />
+                <StatusBar />
                 <Switch>
                     <Route path="/dashboard">
                         <Dashboard setToken={setToken}/>

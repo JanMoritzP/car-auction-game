@@ -1,6 +1,6 @@
 .parts {
     position: absolute;
-    top: 10%;
+    top: 13%;
     left: 50%;
     right: 10%;
     bottom: 10%;
@@ -13,4 +13,29 @@
     background-color: lightgray;
     box-shadow: 0 0 5px grey;
     margin: 0.5rem;
+}
+
+.auctionStuff {
+    position: absolute;
+    top: 12vh;
+    bottom: 40vh;
+    width: 40vw;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+}
+
+.adminBidButton {
+    position: absolute;
+    bottom: 35vh;
+    width: 8rem;
+    height: 5rem;
+}
+
+.adminHeader {
+    position: absolute;
+    left: 45vw;
+    top: 1vh;
+    color: white;
+    font-size: xx-large;
 }

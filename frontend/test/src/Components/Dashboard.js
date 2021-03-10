@@ -6,23 +6,25 @@ export default function Dashboard({ setToken }) {
     const [info, setInfo] = useState([]);
     const [priority, setPriority] = useState(0);
     
-    async function getPrio(priority) {
-        return await fetch("http://localhost:3080/priority", {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({"token": localStorage.getItem("token")})
-        }).then((res) =>{ 
-            if(res.status === 404) setToken(false)
-            return res.json()
-        })
-        .then(json => {
-            setPriority(json.priority)
-        })
-    }
-    
-    getPrio(priority);
+    useEffect(() => {
+        async function getPrio(priority) {
+            return await fetch("http://localhost:3080/priority", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({"token": localStorage.getItem("token")})
+            }).then((res) =>{ 
+                if(res.status === 404) setToken(false)
+                return res.json()
+            })
+            .then(json => {
+                setPriority(json.priority)
+            })
+        }
+
+        getPrio(priority);
+    }, [])
 
     useEffect(() => {
         const socket = SocketIOClient("http://localhost:3080");
@@ -31,6 +33,7 @@ export default function Dashboard({ setToken }) {
             setInfo(data);
         });
         return () => socket.disconnect()
+        
     }, [priority]);
 
     function handleClick(id) {

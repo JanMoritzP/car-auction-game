@@ -1,0 +1,18 @@
+.statusbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 15vw;
+    height: 12vh;
+    right: 5.8vw;
+    z-index: -1;
+    background-color: olive;
+    display: flex;
+    flex-direction: row;
+}
+
+.statusbar p {
+    color: white;
+    margin-right: 5rem;
+
+}

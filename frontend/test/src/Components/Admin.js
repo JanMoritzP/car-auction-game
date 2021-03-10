@@ -70,43 +70,45 @@ export default function Admin() {
 
     return(
         <div>
-            <h2>Admin</h2>
-            <label>
-                <p>Priority</p>
-                <input type="text" defaultValue="1" onChange={e => setPriority(e.target.value)}/>
-            </label>
-            <label>
-                <p>Max Bidders</p>
-                <input type="text" defaultValue="20" onChange={e => setMaxBidders(e.target.value)}/>
-            </label>
-            <label>
-                <p>Max Watchers</p>
-                <input type="text" defaultValue="20" onChange={e => setMaxWatchers(e.target.value)}/>
-            </label>
-            <label>
-                <p>Name</p>
-                <input type="text" defaultValue="Car" onChange={e => setName(e.target.value)}/>
-            </label>
-            <label>
-                <p>Base price</p>
-                <input type="text" defaultValue="0" onChange={e => setBasePrice(e.target.value)}/>
-            </label>
-            <label>
-            <label>
-                <p>Rarity</p>
-                <input type="text" defaultValue="0" onChange={e => setRarity(e.target.value)}/>
-            </label>
-                <p>Time Left</p>
-                <input type="text" defaultValue="100" onChange={e => setTimeLeft(e.target.value)}/>
-            </label>
-            <label>
-                <p>Time Increment</p>
-                <input type="text" defaultValue="10" onChange={e => setTimeIncrement(e.target.value)}/>
-            </label>
-            <label>
-                <p>Increment bound</p>
-                <input type="text" defaultValue="10" onChange={e => setIncrementBound(e.target.value)}/>
-            </label>
+            <h2 class="adminHeader">Admin</h2>
+            <div class="auctionStuff">
+                <label>
+                    <p>Priority</p>
+                    <input type="text" defaultValue="1" onChange={e => setPriority(e.target.value)}/>
+                </label>
+                <label>
+                    <p>Max Bidders</p>
+                    <input type="text" defaultValue="20" onChange={e => setMaxBidders(e.target.value)}/>
+                </label>
+                <label>
+                    <p>Max Watchers</p>
+                    <input type="text" defaultValue="20" onChange={e => setMaxWatchers(e.target.value)}/>
+                </label>
+                <label>
+                    <p>Name</p>
+                    <input type="text" defaultValue="Car" onChange={e => setName(e.target.value)}/>
+                </label>
+                <label>
+                    <p>Base price</p>
+                    <input type="text" defaultValue="0" onChange={e => setBasePrice(e.target.value)}/>
+                </label>
+                <label>
+                <label>
+                    <p>Rarity</p>
+                    <input type="text" defaultValue="0" onChange={e => setRarity(e.target.value)}/>
+                </label>
+                    <p>Time Left</p>
+                    <input type="text" defaultValue="100" onChange={e => setTimeLeft(e.target.value)}/>
+                </label>
+                <label>
+                    <p>Time Increment</p>
+                    <input type="text" defaultValue="10" onChange={e => setTimeIncrement(e.target.value)}/>
+                </label>
+                <label>
+                    <p>Increment bound</p>
+                    <input type="text" defaultValue="10" onChange={e => setIncrementBound(e.target.value)}/>
+                </label>
+            </div>
             <div class="parts">
                 <div class="part">
                     <p>Motor</p>
@@ -186,7 +188,7 @@ export default function Admin() {
                     </label>
                 </div>
             </div>
-            <button onClick={addBid}>Add bid</button>
+            <button onClick={addBid} class="adminBidButton">Add bid</button>
         </div>
     )
 }

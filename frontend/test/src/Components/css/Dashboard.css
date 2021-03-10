@@ -29,3 +29,11 @@
     background-color: whitesmoke;
     transition: background-color 500ms;
 }
+
+.dashBoardHeader {
+    position: absolute;
+    left: 45vw;
+    top: 1vh;
+    color: white;
+    font-size: xx-large;
+}

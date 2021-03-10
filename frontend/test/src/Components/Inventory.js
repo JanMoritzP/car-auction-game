@@ -1,11 +1,11 @@
 import React from 'react'
+import './css/Inventory.css'
 
 export default function Inventory() {
 
     return(
         <div>
-            <h2>Inventory</h2>
-            <p>I would very much like to see my inventory</p>
+            <h2 class="inventoryHeader">Inventory</h2>
         </div>
         
     )
