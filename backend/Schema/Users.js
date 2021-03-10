@@ -8,9 +8,11 @@ const UserSchema = mongoose.Schema({
     salt: String, 
     token: String,
     priority: Number,
-    inventory: [String],
-    bidHistory: [String],
-    activeBids: [String]
+    inventory: {type: [String], default: []},
+    bidHistory: {type: [String], default: []},
+    activeBids: {type: [String], default: []},
+    money: {type: Number, default: 100},
+    claims: {type: [String], default: []}
 })
 
 UserSchema.methods.setPassword = function(password) {

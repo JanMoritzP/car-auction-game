@@ -227,16 +227,30 @@ app.post('/token', (req, res) => {
     }
 })
 
-
-
-
-let interval;
-
 io.on("connection", (socket) => {
-    if(interval) {
-        clearInterval(interval)
+    let interval;
+    if(socket.handshake.query.token) {
+        console.log(socket.handshake.query)
+        User.findOne({token: socket.handshake.query.token}, (err, user) => {
+            if(err) socket.emit("Bad thing happened")
+            else if(!user) socket.emit("No user :(!")
+            else {
+                interval = setInterval(() => {
+                    socket.emit("getStatus".concat(socket.handshake.query.token), {
+                        money: user.money,
+                        auctions: user.activeBids.length,
+                        claims: user.claims.length
+                    })
+                })
+            }
+        })
     }
-    interval = setInterval(() => serveBids(socket), 1000);
+    else {
+        if(interval) {
+            clearInterval(interval)
+        }
+        interval = setInterval(() => serveBids(socket), 1000);
+    }
     socket.on("disconnect", () => {
         clearInterval(interval)
     })
