@@ -11,14 +11,15 @@ export default function StatusBar() {
     const router = useRouter()
 
     useEffect(() => {
-        const socket = SocketIOClient("http://localhost:3080", {query: {token: localStorage.getItem("token"), info: "statusBar"}});
+        const socket = SocketIOClient("http://localhost:3080", {query: {token: localStorage.getItem("token")}});
+        socket.emit("subToStatus", {query: {token: localStorage.getItem("token")}})
         socket.on("getStatus".concat(localStorage.getItem("token").toString()), data => {
             setMoneyAmount(data.money);
             setAuctions(data.auctions);
             setClaims(data.claims);
         });
         return () => {
-            socket.emit('userDisconnects', {token: localStorage.getItem("token")})
+            socket.emit("unsubFromStatus")
             socket.disconnect()
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -31,10 +31,14 @@ export default function Dashboard({ setToken }) {
 
     useEffect(() => {
         const socket = SocketIOClient("http://localhost:3080");
+        socket.emit("subToBids", {query: {token: localStorage.getItem("token")}})
         socket.on("getBids".concat(priority.toString()), data => {
             setInfo(data);
         });
-        return () => socket.disconnect()
+        return () => {
+            socket.emit("unsubFromBids")
+            socket.disconnect()
+        }
         
     }, [priority]);
 

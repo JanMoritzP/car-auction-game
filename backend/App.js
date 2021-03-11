@@ -226,8 +226,24 @@ app.post('/unregisterBid', (req, res) => {
     })
 })
 
-app.post('/bid', (req, res) => {
-    
+app.post('/placeBid', (req, res) => {
+    Bid.findById(req.body.roomId, (err, bid) => {
+        if(err) console.log(err)
+        else if(!bid) console.log("No bid found, this should not happen")
+        else {
+            if(bid.bidPrice > req.body.amount) return res.status(400).send({message: "Someone already bid a higher price than you"})
+            else {
+                bid.bidPrice = req.body.amount
+                bid.currentBidder = req.body.token
+                bid.save((err, bid) => {
+                    if(err) console.log(err)
+                    else {
+                        return res.status(200).send({message: "You are now the highest Bidder"})
+                    }
+                })
+            }
+        }
+    })
 })
 
 app.post('/priority', (req, res) => {
@@ -273,44 +289,85 @@ app.post('/auctionValidation', (req, res) => {
     })
 }) 
 
-var activeUsers = []
-var getAuctionUsers = []
+var statusInterval
+var serveBidsInterval
+var serverUserAuctions
+
+var auctionIntervals = []
+var auctionIds = []
 
 io.on("connection", (socket) => {
-    if(socket.handshake.query.info === "statusBar") {
-        if(!activeUsers.includes(socket.handshake.query.token)) activeUsers.push(socket.handshake.query.token)        
-    }
-    else if(socket.handshake.query.info === "getAuction"){
-        if(!getAuctionUsers.includes(socket.handshake.query.token)) getAuctionUsers.push(socket.handshake.query.token)        
-    }
 
-    io.on("auctionUserDisconnects", (socket) => {
-        if(getAuctionUsers.includes(socket.handshake.query.token)) {
-            getAuctionUsers.splice(socket.handshake.query.token, 1)
-        }
-        else {
-            console.log("Some issue arose with socketio and token disconnection")
-        }
+    //STATUS RELATED SUBS
+    socket.on("subToStatus", (socket) => {
+        statusInterval = setInterval(() => serveStatusBar(socket), 1000)
+    })
+    socket.on("subToBids", (socket) => {
+        serveBidsInterval = setInterval(() => serveBids(socket), 1000);
+    })
+    socket.on("subToUserAuctions", (socket) => {
+        serverUserAuctions = setInterval(() => serveAuctionsToUser(socket), 1000)
     })
 
-    io.on("userDisconnects", (socket) => {
-        if(activeUsers.includes(socket.handshake.query.token)) {
-            activeUsers.splice(socket.handshake.query.token, 1)
-        }
-        else {
-            console.log("Some issue arose with socketio and token disconnection")
-        }
+    //STATUS RELATED UNSUBS
+    socket.on("unsubFromStatus", () => {
+        clearInterval(statusInterval)
+    })
+    socket.on("unsubFromBids", () => {
+        clearInterval(serveBidsInterval)
+    })
+    socket.on("unsubFromUserAuctions", () => {
+        clearInterval(serverUserAuctions)
     })
 
-    const statusInterval = setInterval(() => serveStatusBar(socket), 1000)
-    const serveBidsInterval = setInterval(() => serveBids(socket), 1000);
-    const serverUserAuctions = setInterval(() => serveAuctionsToUser(socket), 1000)
+    
+    socket.on("joinAuctionRoom", (data) => {
+        socket.join(data.id)
+        auctionIntervals.push(setInterval(() => getAuctionData(data.id), 1000))
+        auctionIds.push(data.id)
+        Bid.findById(data.id, (err, bid) => {
+            if(err) console.log(err)
+            else {
+                io.emit(data.token, bid.bidders.indexOf(data.token))
+            }
+        })
+    })
 
+
+    socket.on("leaveAuctionRoom", (roomId) => {
+        socket.leave(roomId)
+        clearInterval(auctionIntervals[auctionIds.indexOf(roomId)])
+        auctionIntervals.splice(auctionIds.indexOf(roomId), 1)
+        auctionIds.splice(auctionIds.indexOf(roomId), 1)
+    })
 
 })
 
+const getAuctionData = async (roomId) => {
+    Bid.findById(roomId, (err, bid) => {
+        if(err) console.log(err)
+        else if(!bid) console.log("No bid found, this should not happen")
+        else {
+            Car.findById(bid.car, 'name', (err, car) => {
+                if(err) console.log(err)
+                else if(!car) console.log("No car found, this should not happen")
+                else {
+                    io.to(roomId).emit("auctionRoom".concat(roomId), {
+                        price: bid.bidPrice,
+                        timeLeft: bid.timeLeft,
+                        currentBidder: bid.bidders.indexOf(bid.currentBidder) + 1,
+                        car: car.name
+                    })
+                }
+            })
+        }
+    })
+}
+
+
+
 const serveAuctionsToUser = async (socket) => {
-    User.findOne({token: socket.handshake.query.token}, 'activeBids', (err, user) => {
+    User.findOne({token: socket.query.token}, 'activeBids', (err, user) => {
         if(err) console.log(err)
         else if(!user) console.log("No users found :( or no users connected")
         else {
@@ -328,10 +385,11 @@ const serveAuctionsToUser = async (socket) => {
                                 for(let i = 0; i < cars.length; i++) {
                                     info.push({
                                         name: cars[i].name,
-                                        price: bids[i].bidPrice
+                                        price: bids[i].bidPrice,
+                                        id: bids[i]._id
                                     })
                                 }
-                                socket.emit("getAuctions", info)
+                                io.emit("getAuctions", info)
                             }
                         })
                     }
@@ -344,11 +402,11 @@ const serveAuctionsToUser = async (socket) => {
 
 
 const serveStatusBar = async (socket) => {
-    User.findOne({token: socket.handshake.query.token}, 'token money activeBids claims', (err, user) => {
+    User.findOne({token: socket.query.token}, 'token money activeBids claims', (err, user) => {
         if(err) console.log(err)
         //else if(users.length === 0) console.log("No users found :( or no users connected")
         else {
-            socket.emit("getStatus".concat(socket.handshake.query.token), {
+            io.emit("getStatus".concat(socket.query.token), {
                 money: user.money,
                 auctions: user.activeBids.length,
                 claims: user.claims.length
@@ -382,7 +440,7 @@ const serveBids = async (socket) => {
                     })
                 }
                 if(names.length === bidIds.length) {
-                    socket.emit("getBids".concat(priority), info)
+                    io.emit("getBids".concat(priority), info)
                 }
             })
         })
