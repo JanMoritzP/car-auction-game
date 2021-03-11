@@ -182,16 +182,44 @@ app.post('/createBid', (req, res) => {
     })
 })
 
+app.post('/registerBid', (req, res) => {
+    User.findOne({token: req.body.token}, (err, user) => {
+        if(!user) return res.status(400).send({message: "Bad token :/"})
+        Bid.findById(req.body.id, (err, bid) => {
+            if(!bid) return res.status(400).send({message: "Invalid bid id"})
+            if(bid.bidders.includes(req.body.token)) return res.status(200).send({message: "You are already registered for this auction"})
+            if(bid.bidders.length < bid.maxBidders) {
+                bid.bidders.push(req.body.token)
+                bid.save((err) => {
+                    if(err) return res.status(400).send({message: "Something went wrong updating the DB"})
+                    return res.status(200).send({message: "You were added to this auction"})
+                })
+            }
+            else return res.status(400).send({message: "This auction is already full :/"})
+            
+        })
+    })
+})
+
+app.post('/unregisterBid', (req, res) => {
+    User.findOne({token: req.body.token}, (err, user) => {
+        if(!user) return res.status(400).send({message: "Bad token"})
+        Bid.findById(req.body.id, (err, bid) => {
+            if(!bid) return res.status(400).send({message: "Bid not found"})
+            if(!bid.bidders.includes(req.body.token)) return res.status(200).send({message: "You are not registered in this auction, so you do not need to unregister"})
+            else {
+                bid.bidders.splice(bid.bidders.indexOf(req.body.token), 1)
+                bid.save((err) => {
+                    if(err) return res.status(400).send({message: "Something went wrong updating the DB"})
+                    return res.status(200).send({message: "You were removed to this auction"})                    
+                })
+            }
+        })
+    })
+})
+
 app.post('/bid', (req, res) => {
-    if(req.headers.query.equals("registerBid")) {
-        
-    }
-
-
-
-    if(req.headers.query.equals("bid")) {
-
-    }
+    
 })
 
 app.post('/priority', (req, res) => {
@@ -227,10 +255,19 @@ app.post('/token', (req, res) => {
     }
 })
 
+app.post('/auctionValidation', (req, res) => {
+    Bid.findById(req.body.id, (err, bid) => {
+        if(!bid) return res.status(400).send({message: "Not a valid auction id"})
+        if(!bid.bidders.includes(req.body.token))return res.status(400).send({message: "You are not registered for this auction"})
+        else {
+            return res.status(200).send({message: "You're good to go to bid"})
+        }
+    })
+}) 
+
 io.on("connection", (socket) => {
     let interval;
     if(socket.handshake.query.token) {
-        console.log(socket.handshake.query)
         User.findOne({token: socket.handshake.query.token}, (err, user) => {
             if(err) socket.emit("Bad thing happened")
             else if(!user) socket.emit("No user :(!")
@@ -260,10 +297,12 @@ const serveBids = async (socket) => {
     for(let priority = 1; priority < 6; priority++) {        
         var cars = []
         var info = []
-        Bid.find({"priority": priority, "bidders": {$exists: true}}, '_id car', (err, bids) => {
+        Bid.find({"priority": priority, "bidders": {$exists: true}}, '_id car bidPrice', (err, bids) => {
             var bidIds = []
+            var bidPrices = []
             for(let i = 0; i < bids.length; i++) {
                 bidIds.push(bids[i]._id)
+                bidPrices.push(bids[i].bidPrice)
                 cars.push(getCarName(bids[i].car).then( (carName) => {return carName}))
             }
             Promise.all(cars).then(values => {
@@ -272,6 +311,7 @@ const serveBids = async (socket) => {
                     names.push(values[i].name)
                     info.push({
                         bid: bidIds[i],
+                        bidPrice: bidPrices[i],
                         car: values[i].name
                     })
                 }
