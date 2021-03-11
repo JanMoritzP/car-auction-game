@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import SocketIOClient from 'socket.io-client'
+import useRouter from './Functions/useRouter'
 import './css/Dashboard.css'
 
 export default function Dashboard({ setToken }) {
     const [info, setInfo] = useState([]);
     const [priority, setPriority] = useState(0);
+    const router = useRouter()
     
     useEffect(() => {
         async function getPrio(priority) {
@@ -24,12 +26,12 @@ export default function Dashboard({ setToken }) {
         }
 
         getPrio(priority);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     useEffect(() => {
         const socket = SocketIOClient("http://localhost:3080");
         socket.on("getBids".concat(priority.toString()), data => {
-            console.log(data)
             setInfo(data);
         });
         return () => socket.disconnect()
@@ -37,15 +39,34 @@ export default function Dashboard({ setToken }) {
     }, [priority]);
 
     function handleClick(id) {
-        console.log(id)
+        fetch("http://localhost:3080/registerBid", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                id: id,
+                token: localStorage.getItem("token")
+            })
+        })
+        .then(res => {
+            if(res.status !== 200) console.log(res.message)
+            else{
+                router.push('/auction/'.concat(id.toString()))
+            }
+        })
     }
-
 
     return(
         <div>
             <h2 class="dashBoardHeader">Dashboard boiii</h2>
-            <div class="bidButtonContainer">
-                {info.map(info => <button onClick={() => handleClick(info.bid)}class="bidButtons">{info.car}</button>)}
+            <div class="bidContainer">
+                {info.map(info => 
+                <div class="bidDivs" id={info.bid.toString().concat("div")}>
+                    <p>{info.car}</p>
+                    <p>{info.bidPrice}</p>
+                    <button onClick={() => handleClick(info.bid)} id={info.bid} class="bidButtons">Enter auction</button>
+                </div>)}
             </div>
         </div>
     )

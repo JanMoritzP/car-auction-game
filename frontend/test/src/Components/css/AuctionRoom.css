@@ -1,0 +1,30 @@
+.auctionRoomHeader {
+    position: absolute;
+    left: 45vw;
+    top: 1vh;
+    color: white;
+    font-size: xx-large;    
+}
+
+.auctionBidWrapper {
+    position: absolute;
+    top: 15vh;
+    left: 10vw;
+}
+
+.auctionBidWrapper > p {
+    margin: 2rem;
+}
+
+.auctionRoomButtons {
+    position: absolute;
+    top: 20vh;
+    right: 20vw;
+    height: 20vh;
+    width: 40vw;
+}
+
+.auctionRoomButtons > button {
+    padding: 0.5rem;
+    margin: 0.3rem;
+}

@@ -4,8 +4,8 @@ import './css/Admin.css'
 export default function Admin() {
 
     const [priority, setPriority] = useState(1)
-    const [maxBidders, setMaxBidders] = useState(0);
-    const [maxWatchers, setMaxWatchers] = useState(0);
+    const [maxBidders, setMaxBidders] = useState(20);
+    const [maxWatchers, setMaxWatchers] = useState(20);
     const [name, setName] = useState("Car");
     const [basePrice, setBasePrice] = useState(0);
     const [rarity, setRarity] = useState(0)
@@ -63,8 +63,7 @@ export default function Admin() {
             }
             
         }
-        const newBid = await accessAPI(bid)
-        console.log(newBid)
+        await accessAPI(bid)
     }
 
 

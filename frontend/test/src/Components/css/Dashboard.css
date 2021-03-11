@@ -1,4 +1,4 @@
-.bidButtonContainer {
+.bidContainer {
     background-color: gray;
     position: absolute;
     top: 15vh;
@@ -15,8 +15,7 @@
     overflow-y: auto;
 }
 
-
-.bidButtons {
+.bidDivs {
     height: 10rem;
     width: 7.5rem;
     margin: 0.5rem;
@@ -25,9 +24,19 @@
     transition: background-color 500ms;
 }
 
-.bidButtons:hover {
-    background-color: whitesmoke;
+.bidDivs:hover {
+    background-color: lightgrey;
     transition: background-color 500ms;
+}
+
+.bidDivs:hover > button {
+    scale: 1;
+    transition: scale 400ms;
+}
+
+.bidButtons {
+    scale: 0;
+    transition: scale 400ms;
 }
 
 .dashBoardHeader {

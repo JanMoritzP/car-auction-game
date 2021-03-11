@@ -7,7 +7,9 @@ import Signup from './Components/Signup'
 import Admin from './Components/Admin'
 import Navbar from './Components/Navbar'
 import StatusBar from './Components/StatusBar'
-import useToken from './Functions/useToken'
+import AuctionRoom from './Components/AuctionRoom'
+import YourAuctions from './Components/YourAuctions';
+import useToken from './Components/Functions/useToken'
 
 import './Components/css/App.css'
 
@@ -44,6 +46,12 @@ function App() {
                     </Route>
                     <Route path="/admin">
                         <Admin />
+                    </Route>
+                    <Route path="/auction/:id">
+                        <AuctionRoom />
+                    </Route>
+                    <Route path="/yourAuctions">
+                        <YourAuctions />
                     </Route>
                 </Switch>
             </BrowserRouter>
