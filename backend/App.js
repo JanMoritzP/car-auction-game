@@ -233,8 +233,7 @@ app.post('/placeBid', (req, res) => {
         else {
             if(bid.bidPrice > req.body.amount) return res.status(400).send({message: "Someone already bid a higher price than you"})
             else {
-                bid.bidPrice = req.body.amount
-                bid.currentBidder = req.body.token
+                bid.bid(req.body.amount, req.body.token)
                 bid.save((err, bid) => {
                     if(err) console.log(err)
                     else {
@@ -356,6 +355,7 @@ const getAuctionData = async (roomId) => {
                         price: bid.bidPrice,
                         timeLeft: bid.timeLeft,
                         currentBidder: bid.bidders.indexOf(bid.currentBidder) + 1,
+                        active: bid.active,
                         car: car.name
                     })
                 }
@@ -404,8 +404,7 @@ const serveAuctionsToUser = async (socket) => {
 const serveStatusBar = async (socket) => {
     User.findOne({token: socket.query.token}, 'token money activeBids claims', (err, user) => {
         if(err) console.log(err)
-        //else if(users.length === 0) console.log("No users found :( or no users connected")
-        else {
+        else if(user) {
             io.emit("getStatus".concat(socket.query.token), {
                 money: user.money,
                 auctions: user.activeBids.length,
@@ -421,7 +420,7 @@ const serveBids = async (socket) => {
     for(let priority = 1; priority < 6; priority++) {        
         var cars = []
         var info = []
-        Bid.find({"priority": priority, "bidders": {$exists: true}}, '_id car bidPrice', (err, bids) => {
+        Bid.find({"priority": priority, "active": true}, '_id car bidPrice', (err, bids) => {
             var bidIds = []
             var bidPrices = []
             for(let i = 0; i < bids.length; i++) {
@@ -449,8 +448,42 @@ const serveBids = async (socket) => {
 
 async function getCarName(id) {
     return await Car.findById(id, 'name').exec().then((data) => {return data})
-    
 }
+
+const mainAuctionInterval = setInterval(() => {
+    Bid.find({active: true}, (err, bids) => {
+        if(err) console.log("error")
+        else {
+            for(let i = 0; i < bids.length; i++) {
+                if(bids[i].timeLeft > 0) {
+                    bids[i].timeLeft--
+                    bids[i].save((err) => {
+                        if(err) console.log(err)
+                    })
+                }
+                else {
+                    bids[i].active = false;
+                    bids[i].save((err) => {
+                        if(err) console.log(err)
+                    })
+                    User.find({token: {$in: bids[i].bidders}}, (err, users) => {
+                        if(err) console.log(err)
+                        else if(users.length !== 0) {
+                            for(let k = 0; k < users.length; k++) {
+                                users[k].activeBids.splice(users[k].activeBids.indexOf(bids[i]._id), 1)
+                                users[k].bidHistory.push(bids[i]._id)
+                                if(users[k].token === bids[i].currentBidder) users[k].claims.push(bids[i]._id)
+                                users[k].save((err) => {
+                                    if(err) console.log(err)
+                                })
+                            }
+                        }
+                    })
+                }
+            }
+        }
+    })
+}, 1000)
 
 const port = 3080
 

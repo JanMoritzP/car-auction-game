@@ -9,8 +9,9 @@ const BidSchema = mongoose.Schema({
     bidPrice: Number,
     currentBidder: String,
     timeLeft: Number,
-    runningTimeIncrement: Number,
+    timeIncrement: Number,
     incrementBound: Number,
+    active: {type: Boolean, default: true},
     car: String
 })
 
@@ -18,6 +19,7 @@ BidSchema.methods.bid = function(price, bidder) {
     if(price > this.bidPrice && this.bidders.indexOf(bidder) != -1) {
         this.bidPrice = price;
         this.currentBidder = bidder;
+        if(this.timeLeft < this.incrementBound) this.timeLeft += this.timeIncrement
     }
     else {
         return "You cannot bid on this as you are either not an allowed bidder or you tried to bid less or equal to the current price"

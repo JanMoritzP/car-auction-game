@@ -39,6 +39,7 @@ export default function AuctionRoom() {
             setPosition(data + 1)
         })
         socket.on("auctionRoom".concat(id), data => {
+            if(data.active === false) router.push('/dashboard')
             setCar(data.car)
             setPrice(data.price)
             setHighestBidder(data.currentBidder)
