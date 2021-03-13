@@ -5,3 +5,56 @@
     color: white;
     font-size: xx-large;
 }
+
+.invOptionDiv {
+    position: absolute;
+    top: 13.5vh;
+    left: 40vw;
+}
+
+.invOptionDiv > button {
+    padding: 0.8rem;
+    margin-left: 1rem;
+    margin-right: 1rem;
+}
+
+.invCheckBoxDiv {
+    position: absolute;
+    top: 15vh;
+    left: 2vw;
+
+}
+
+.mainInvDiv {
+    background-color: green;
+    position: absolute;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: flex-start;
+    align-content: flex-start;
+    top: 20vh;
+    right: 20vw;
+    left: 2vw;
+}
+
+.invCars, .invParts, .invMisc{
+    background-color: honeydew;
+    padding: 0.5rem;
+    margin: 0.5rem;
+    align-self: flex-start;
+    height: 8rem;
+    width: 10rem;
+    align-content: center;
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.invCars > p, .invParts > p, .invMisc > p {
+    align-self: center;
+    font-size: larger;
+    padding: 0;
+    margin: 0.6rem;
+}

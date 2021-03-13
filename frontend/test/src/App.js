@@ -9,6 +9,7 @@ import Navbar from './Components/Navbar'
 import StatusBar from './Components/StatusBar'
 import AuctionRoom from './Components/AuctionRoom'
 import YourAuctions from './Components/YourAuctions';
+import YourClaims from './Components/YourClaims';
 import useToken from './Components/Functions/useToken'
 
 import './Components/css/App.css'
@@ -52,6 +53,9 @@ function App() {
                     </Route>
                     <Route path="/yourAuctions">
                         <YourAuctions />
+                    </Route>
+                    <Route path="/yourClaims">
+                        <YourClaims />
                     </Route>
                 </Switch>
             </BrowserRouter>

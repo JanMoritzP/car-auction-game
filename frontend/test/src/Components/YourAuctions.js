@@ -12,7 +12,7 @@ export default function YourAuctions() {
     useEffect(() => {
         const socket = SocketIOClient("http://localhost:3080", {query: {token: localStorage.getItem("token")}});
         socket.emit("subToUserAuctions", {query: {token: localStorage.getItem("token")}})
-        socket.on("getAuctions", data => {
+        socket.on("getAuctions".concat(localStorage.getItem("token")), data => {
             setInfo(data);
         });
         return () => {

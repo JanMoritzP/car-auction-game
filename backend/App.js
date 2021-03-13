@@ -93,16 +93,17 @@ app.post('/signup', (req, res) => {
 app.post('/createBid', (req, res) => {
     // Create new Parts ; Remember to incorparate a default value in frontend
     let newParts = []
+    let newCar = new Car() //Car has to be created here to get the connection to the parts
     
     for(let i = 0; i < req.body.parts.name.length; i++) {
         newParts[i] = new Part();
         newParts[i].name = req.body.parts.name[i]
         newParts[i].rarity = req.body.parts.rarity[i]
+        newParts[i].usedIn = newCar._id
         newParts[i].price = req.body.parts.price[i]
     }
     
     // Create new Car
-    let newCar = new Car()
     newCar.name = req.body.car.name
     newCar.rarity = req.body.car.rarity
     newCar.price = 100;
@@ -245,6 +246,72 @@ app.post('/placeBid', (req, res) => {
     })
 })
 
+app.post('/claimAuction', (req, res) => {
+    User.findOne({token: req.body.token}, (err, user) => {
+        if(err) return res.status(400).send({message: err})
+        else if(!user) return res.status(400).send({message: "Token not recognized"})
+        else {
+            if(!user.claims.includes(req.body.id)) return res.status(400).send({message: "You cannot claim a bid that you have not won"})
+            else {
+                Bid.findById(req.body.id, 'car', (err, bid) => {
+                    if(err) return res.status(400).send({message: err})
+                    else if(!bid) return res.status(400).send({message: "Bid not found, should not happen"})
+                    else {
+                        Car.findById(bid.car, (err, car) => {
+                            if(err) return res.status(400).send({message: err})
+                            else if(!car) return res.status(400).send({message: "Car not found, should not happen"})
+                            else {
+                                user.carInventory.push(car._id)
+                                if(car.status.motor !== null) user.partsInventory.push(car.status.motor)
+                                if(car.status.suspension !== null) user.partsInventory.push(car.status.suspension)
+                                if(car.status.transmission !== null) user.partsInventory.push(car.status.transmission)
+                                if(car.status.breaks !== null) user.partsInventory.push(car.status.breaks)
+                                if(car.status.paint !== null) user.partsInventory.push(car.status.paint)
+                                if(car.status.exhaust !== null) user.partsInventory.push(car.status.exhaust)
+                                if(car.status.wheels !== null) user.partsInventory.push(car.status.wheels)
+                                user.claims.splice(user.claims.indexOf(req.body.id), 1)
+                                user.save((err) => {
+                                    if(err) return res.status(400).send({message: err})
+                                })
+                                return res.status(200).send({message: "Auction was claimed"})
+                            }
+                        })
+                    }
+                })
+            }
+        }
+    } )
+})
+
+app.post('/getInventory', (req, res) => {
+    User.findOne({token: req.body.token}, (err, user) => {
+        if(err) return res.status(400).send({message: err})
+        else if(!user) return res.status(400).send({message: "Token not recognized"})
+        else {
+            if(req.body.option === "cars") {
+                Car.find({_id: {$in: user.carInventory}}, 'name price rarity', (err, cars) => {
+                    if(err) res.status(400).send({message: err})
+                    else {
+                        return res.status(200).send({data: cars})
+                    }
+                })
+            }
+            else if(req.body.option === "parts") {
+                Part.find({_id: {$in: user.partsInventory}}, (err, parts) => {
+                    if(err) return res.status(400).send({message: err})
+                    else {
+                        return res.status(200).send({data: parts})
+                    }
+                })
+            }
+            else if(req.body.option === "misc") {
+                return res.status(200).send({data: []})
+            }
+            else return res.status(400).send({message: "Option not recognized"})
+        }
+    })
+})
+
 app.post('/priority', (req, res) => {
     User.findOne({token: req.body.token}, (err, user) => {
         if(err) return res.status(400).send({
@@ -290,7 +357,8 @@ app.post('/auctionValidation', (req, res) => {
 
 var statusInterval
 var serveBidsInterval
-var serverUserAuctions
+var serveUserAuctions
+var serveUserClaims
 
 var auctionIntervals = []
 var auctionIds = []
@@ -305,7 +373,10 @@ io.on("connection", (socket) => {
         serveBidsInterval = setInterval(() => serveBids(socket), 1000);
     })
     socket.on("subToUserAuctions", (socket) => {
-        serverUserAuctions = setInterval(() => serveAuctionsToUser(socket), 1000)
+        serveUserAuctions = setInterval(() => serveAuctionsToUser(socket), 1000)
+    })
+    socket.on("subToUserClaims", (socket) => {
+        serveUserClaims = setInterval(() => serveClaimsToUser(socket), 1000)
     })
 
     //STATUS RELATED UNSUBS
@@ -316,7 +387,10 @@ io.on("connection", (socket) => {
         clearInterval(serveBidsInterval)
     })
     socket.on("unsubFromUserAuctions", () => {
-        clearInterval(serverUserAuctions)
+        clearInterval(serveUserAuctions)
+    })
+    socket.on("unsubFromUserClaims", () => {
+        clearInterval(serveUserClaims)
     })
 
     
@@ -364,7 +438,38 @@ const getAuctionData = async (roomId) => {
     })
 }
 
-
+const serveClaimsToUser = async (socket) => {
+    User.findOne({token: socket.query.token}, 'claims', (err, user) => {
+        if(err) console.log(err)
+        else if(!user) console.log("No user found, this should not happen")
+        else {
+            if(user.claims.length !== 0) {
+                Bid.find({_id: {$in: user.claims}}, 'bidPrice car', (err, bids) => {
+                    if(err) console.log(err)
+                    else if(!bids) console.log("No bids found, this should not happen")
+                    else {
+                        const cars = bids.map(bid => bid.car)
+                        Car.find({_id: {$in: cars}}, 'name', (err, cars) => {
+                            if(err) console.log(err)
+                            else if(cars.length === 0) console.log("No cars found, this should not happen")
+                            else {
+                                var info = []
+                                for(let i = 0; i < cars.length; i++) {
+                                    info.push({
+                                        name: cars[i].name,
+                                        price: bids[i].bidPrice,
+                                        id: bids[i]._id
+                                    })
+                                }
+                                io.emit("getClaims".concat(socket.query.token), info)
+                            }
+                        })
+                    }
+                })
+            }
+        }
+    })
+}
 
 const serveAuctionsToUser = async (socket) => {
     User.findOne({token: socket.query.token}, 'activeBids', (err, user) => {
@@ -389,7 +494,7 @@ const serveAuctionsToUser = async (socket) => {
                                         id: bids[i]._id
                                     })
                                 }
-                                io.emit("getAuctions", info)
+                                io.emit("getAuctions".concat(socket.query.token), info)
                             }
                         })
                     }

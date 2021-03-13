@@ -1,0 +1,24 @@
+.yourClaimsWrapper {
+    position: absolute;
+    top: 12vh;
+    left: 5vw;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.yourClaimsCards {
+    width: 4rem;
+    height: 10rem;
+    background-color:green;
+    padding: 0.5rem;
+    margin: 1rem;
+    box-shadow: 0 0 1rem gray;
+    border-radius: 7%;
+    transition: background-color 300ms;
+}
+
+.yourClaimsCards:hover {
+    background-color: darkgreen;
+    transition: background-color 300ms;
+}
