@@ -22,6 +22,7 @@ export default function Inventory() {
         })
         .then(res => res.json())
         .then(data => {
+            console.log(data)
             if(option === "cars") {
                 setCars(data.data)
             }

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 const crypto = require('crypto')
-
+const Schema = mongoose.Schema
 
 const UserSchema = mongoose.Schema({
     username: String,
@@ -8,13 +8,13 @@ const UserSchema = mongoose.Schema({
     salt: String, 
     token: String,
     priority: Number,
-    carInventory: {type: [String], default: []},
-    partsInventory: {type: [String], default: []},
-    miscInventory: {type: [String], default: []},
-    bidHistory: {type: [String], default: []},
-    activeBids: {type: [String], default: []},
+    carInventory: {type: [Schema.Types.ObjectId], ref: 'car', default: []},
+    partsInventory: {type: [Schema.Types.ObjectId], ref: 'part', default: []},
+    miscInventory: {type: [Schema.Types.ObjectId], ref: 'misc', default: []},
+    bidHistory: {type: [Schema.Types.ObjectId], ref: 'bid', default: []},
+    activeBids: {type: [Schema.Types.ObjectId], ref: 'bid', default: []},
     money: {type: Number, default: 100},
-    claims: {type: [String], default: []}
+    claims: {type: [Schema.Types.ObjectId], ref: 'bid', default: []}
 })
 
 UserSchema.methods.setPassword = function(password) {
@@ -37,4 +37,4 @@ UserSchema.methods.validateToken = function(incToken) {
 }
 
 
-const User = module.exports = mongoose.model('User', UserSchema, 'cagDB'); 
+const User = module.exports = mongoose.model('user', UserSchema, 'cagDB'); 

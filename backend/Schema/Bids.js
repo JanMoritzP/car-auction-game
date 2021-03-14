@@ -1,18 +1,19 @@
 const mongoose = require('mongoose')
+const Schema = mongoose.Schema
 
 const BidSchema = mongoose.Schema({
     priority: Number,
-    bidders: [String],
+    bidders: {type: [Schema.Types.ObjectId], ref: 'user'},
     maxBidders: Number,
-    watchers: [String],
+    watchers: {type: [Schema.Types.ObjectId], ref: 'user'},
     maxWatchers: Number,
     bidPrice: Number,
-    currentBidder: String,
+    currentBidder: {type: Schema.Types.ObjectId, ref: 'user'},
     timeLeft: Number,
     timeIncrement: Number,
     incrementBound: Number,
     active: {type: Boolean, default: true},
-    car: String
+    car: {type: Schema.Types.ObjectId, ref: 'car'}
 })
 
 BidSchema.methods.bid = function(price, bidder) {
@@ -24,49 +25,6 @@ BidSchema.methods.bid = function(price, bidder) {
     else {
         return "You cannot bid on this as you are either not an allowed bidder or you tried to bid less or equal to the current price"
     }
-}
-
-BidSchema.methods.getCurrentPrice = function() {
-    return this.bidPrice;
-}
-
-BidSchema.methods.getCurrentBidder = function() {
-    return this.currentBidder;
-}
-
-BidSchema.methods.addBidder = function(bidder) {
-    if(this.bidders.length + 1 <= this.maxBidders) {
-        this.bidders.push(bidder)
-    }
-    else {
-        return console.log("No more bidders allowed")
-    }
-}
-
-BidSchema.methods.addWatcher = function(watcher) {
-    if(this.watchers.length + 1 <= this.maxWatchers) {
-        this.watchers.push(watcher)
-    }
-    else {
-        return console.log("No more watchers allowed")
-    }
-}
-
-
-BidSchema.methods.getBidders = function() {
-    return this.bidders;
-}
-
-BidSchema.methods.getWatchers = function() {
-    return this.watchers;
-}
-
-BidSchema.methods.getPriority = function() {
-    return this.priority;
-}
-
-BidSchema.methods.getObject = function() {
-    return this.object;
 }
 
 

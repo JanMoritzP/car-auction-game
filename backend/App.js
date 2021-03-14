@@ -25,6 +25,7 @@ const User = require('./Schema/Users')
 const Bid = require('./Schema/Bids')
 const Part = require('./Schema/Parts')
 const Car = require('./Schema/Cars')
+const Misc = require('./Schema/Misc')
 mongoose.connect('mongodb://localhost:27017/cagDB', {useNewUrlParser:true, useUnifiedTopology:true})
 
 app.post('/login', (req, res) => {
@@ -99,7 +100,7 @@ app.post('/createBid', (req, res) => {
         newParts[i] = new Part();
         newParts[i].name = req.body.parts.name[i]
         newParts[i].rarity = req.body.parts.rarity[i]
-        newParts[i].usedIn = newCar._id
+        newParts[i].usedIn = newCar
         newParts[i].price = req.body.parts.price[i]
     }
     
@@ -110,25 +111,25 @@ app.post('/createBid', (req, res) => {
     for(let i = 0; i < newParts.length; i++) {
         switch (newParts[i].name) {
             case 'motor':
-                newCar.status.motor = newParts[i]._id
+                newCar.status.motor = newParts[i]
                 break;
             case 'suspension':
-                newCar.status.suspension = newParts[i]._id                
+                newCar.status.suspension = newParts[i]                
                 break;
             case 'transmission':
-                newCar.status.transmission = newParts[i]._id                
+                newCar.status.transmission = newParts[i]                
                 break;
             case 'exhaust':
-                newCar.status.exhaust = newParts[i]._id                
+                newCar.status.exhaust = newParts[i]                
                 break;
             case 'breaks':
-                newCar.status.breaks = newParts[i]._id                
+                newCar.status.breaks = newParts[i]                
                 break;
             case 'paint':
-                newCar.status.paint = newParts[i]._id                
+                newCar.status.paint = newParts[i]                
                 break;
             case 'wheels':
-                newCar.status.wheels = newParts[i]._id                
+                newCar.status.wheels = newParts[i]                
                 break;        
             default:
                 console.log("This should not have happened")
@@ -149,7 +150,7 @@ app.post('/createBid', (req, res) => {
     newBid.timeLeft = req.body.bid.timeLeft;
     newBid.timeIncrement = req.body.bid.timeIncrement;
     newBid.incrementBound = req.body.bid.incrementBound;
-    newBid.car = newCar._id;
+    newBid.car = newCar;
 
     for(let i = 0; i < newParts.length; i++) {
         newParts[i].save((err, part) => {
@@ -184,14 +185,14 @@ app.post('/createBid', (req, res) => {
 })
 
 app.post('/registerBid', (req, res) => {
-    User.findOne({token: req.body.token}, (err, user) => {
+    User.findOne({token: req.body.token}).populate({path: 'activeBids', model: 'bid'}).exec((err, user) => {
         if(!user) return res.status(400).send({message: "Bad token :/"})
-        Bid.findById(req.body.id, (err, bid) => {
+        Bid.findById(req.body.id).populate({path: 'bidders', model: 'user'}).exec((err, bid) => {
             if(!bid) return res.status(400).send({message: "Invalid bid id"})
-            if(bid.bidders.includes(req.body.token)) return res.status(200).send({message: "You are already registered for this auction"})
+            if(bid.bidders.includes(user)) return res.status(200).send({message: "You are already registered for this auction"})
             if(bid.bidders.length < bid.maxBidders) {
-                bid.bidders.push(req.body.token)
-                user.activeBids.push(req.body.id)
+                bid.bidders.push(user)
+                user.activeBids.push(bid)
                 bid.save((err) => {
                     if(err) return res.status(400).send({message: "Something went wrong updating the DB"})
                     user.save((err) => {
@@ -207,14 +208,18 @@ app.post('/registerBid', (req, res) => {
 })
 
 app.post('/unregisterBid', (req, res) => {
-    User.findOne({token: req.body.token}, (err, user) => {
+    User.findOne({token: req.body.token}).populate({path: 'activeBids', model: 'bid'}).exec((err, user) => {
         if(!user) return res.status(400).send({message: "Bad token"})
-        Bid.findById(req.body.id, (err, bid) => {
+        Bid.findById(req.body.id).populate({path: 'bidders', model: 'user'}).exec((err, bid) => {
             if(!bid) return res.status(400).send({message: "Bid not found"})
-            if(!bid.bidders.includes(req.body.token)) return res.status(200).send({message: "You are not registered in this auction, so you do not need to unregister"})
+            if(!bid.bidders.includes(user)) return res.status(200).send({message: "You are not registered in this auction, so you do not need to unregister"})
             else {
-                bid.bidders.splice(bid.bidders.indexOf(req.body.token), 1)
-                user.activeBids.splice(user.activeBids.indexOf(req.body.id), 1)
+                for(let i = 0; i < bid.bidders.length; i++) {
+                    if(bid.bidders[i].token === user.token) bid.bidders.splice(i, 1)
+                }
+                for(let i = 0; i < user.activeBids.length; i++) {
+                    if(user.activeBids._id.equals(bid._id)) user.activeBids.splice(i, 1)
+                }
                 bid.save((err) => {
                     if(err) return res.status(400).send({message: "Something went wrong updating the DB"})
                     user.save((err) => {
@@ -228,17 +233,29 @@ app.post('/unregisterBid', (req, res) => {
 })
 
 app.post('/placeBid', (req, res) => {
-    Bid.findById(req.body.roomId, (err, bid) => {
+    Bid.findById(req.body.roomId).populate({path: 'bidders', model: 'user'}).exec((err, bid) => {
         if(err) console.log(err)
         else if(!bid) console.log("No bid found, this should not happen")
         else {
-            if(bid.bidPrice > req.body.amount) return res.status(400).send({message: "Someone already bid a higher price than you"})
+            if(bid.bidPrice >= req.body.amount) return res.status(400).send({message: "Someone already bid a higher or the same price as you"})
             else {
-                bid.bid(req.body.amount, req.body.token)
-                bid.save((err, bid) => {
-                    if(err) console.log(err)
+                User.findOne({token: req.body.token}, (err, user) => {
+                    if(err) return res.status(400).send({message: err})
+                    else if(!user) return res.status(400).send({message: "No user found, this should not happen"})
                     else {
-                        return res.status(200).send({message: "You are now the highest Bidder"})
+                        for(let i = 0; i < bid.bidders.length; i++) {
+                            if(bid.bidders[i].token === req.body.token) {
+                                bid.bidPrice = req.body.amount
+                                bid.currentBidder = user
+                                if(bid.timeLeft < bid.incrementBound) bid.timeLeft += bid.timeIncrement
+                                bid.save((err, bid) => {
+                                    if(err) console.log(err)
+                                    else {
+                                        return res.status(200).send({message: "You are now the highest Bidder"})
+                                    }
+                                })
+                            }
+                        }
                     }
                 })
             }
@@ -247,65 +264,63 @@ app.post('/placeBid', (req, res) => {
 })
 
 app.post('/claimAuction', (req, res) => {
-    User.findOne({token: req.body.token}, (err, user) => {
+    User.findOne({token: req.body.token}).populate({path: 'claims', model: 'bid'}).populate({path: 'carInventory', model: 'car'}).populate({path: 'partsInventory', model: 'part'}).exec((err, user) => {
         if(err) return res.status(400).send({message: err})
         else if(!user) return res.status(400).send({message: "Token not recognized"})
         else {
-            if(!user.claims.includes(req.body.id)) return res.status(400).send({message: "You cannot claim a bid that you have not won"})
-            else {
-                Bid.findById(req.body.id, 'car', (err, bid) => {
-                    if(err) return res.status(400).send({message: err})
-                    else if(!bid) return res.status(400).send({message: "Bid not found, should not happen"})
-                    else {
-                        Car.findById(bid.car, (err, car) => {
-                            if(err) return res.status(400).send({message: err})
-                            else if(!car) return res.status(400).send({message: "Car not found, should not happen"})
-                            else {
-                                user.carInventory.push(car._id)
-                                if(car.status.motor !== null) user.partsInventory.push(car.status.motor)
-                                if(car.status.suspension !== null) user.partsInventory.push(car.status.suspension)
-                                if(car.status.transmission !== null) user.partsInventory.push(car.status.transmission)
-                                if(car.status.breaks !== null) user.partsInventory.push(car.status.breaks)
-                                if(car.status.paint !== null) user.partsInventory.push(car.status.paint)
-                                if(car.status.exhaust !== null) user.partsInventory.push(car.status.exhaust)
-                                if(car.status.wheels !== null) user.partsInventory.push(car.status.wheels)
-                                user.claims.splice(user.claims.indexOf(req.body.id), 1)
-                                user.save((err) => {
-                                    if(err) return res.status(400).send({message: err})
-                                })
-                                return res.status(200).send({message: "Auction was claimed"})
-                            }
-                        })
-                    }
-                })
+            const populationParams = {
+                path: 'car',
+                model: 'car',
+                populate: {
+                    path: 'status.motor status.suspension status.transmission status.breaks status.paint status.exhaust status.wheels',
+                    model: 'part'
+                }
             }
+            Bid.findById(req.body.id).populate(populationParams).populate({path: 'currentBidder', model: 'user'}).exec((err, bid) => {
+                if(err) return res.status(400).send({message: err})
+                else if(!bid) return res.status(400).send({message: "No bid found, this should not happen"})
+                else {
+                    if(bid.active) return res.status(400).send({message: "You cannot claim an ongoing auction"})
+                    else if(bid.currentBidder.token !== user.token) return res.status(400).send({message: "You cannot claim a bid that you have not won"})
+                    else {
+                        user.carInventory.push(bid.car)
+                        if(bid.car.status.motor !== null) user.partsInventory.push(bid.car.status.motor)
+                        if(bid.car.status.suspension !== null) user.partsInventory.push(bid.car.status.suspension)
+                        if(bid.car.status.transmission !== null) user.partsInventory.push(bid.car.status.transmission)
+                        if(bid.car.status.breaks !== null) user.partsInventory.push(bid.car.status.breaks)
+                        if(bid.car.status.paint !== null) user.partsInventory.push(bid.car.status.paint)
+                        if(bid.car.status.exhaust !== null) user.partsInventory.push(bid.car.status.exhaust)
+                        if(bid.car.status.wheels !== null) user.partsInventory.push(bid.car.status.wheels)
+                        for(let i = 0; i < user.claims.length; i++) {
+                            if(user.claims[i]._id.equals(bid._id)) {
+                                user.claims.splice(i, 1)
+                            }
+                        }
+                        user.save((err) => {
+                            if(err) return res.status(400).send({message: err})
+                        })
+                        return res.status(200).send({message: "Auction was claimed"})
+                    
+                    }
+                }
+            })
         }
     } )
 })
 
 app.post('/getInventory', (req, res) => {
-    User.findOne({token: req.body.token}, (err, user) => {
+    User.findOne({token: req.body.token}).populate({path: 'carInventory', model: 'car'}).populate({path: 'partsInventory', model: 'part'}).populate({path: 'miscInventory', model: 'misc'}).exec((err, user) => {
         if(err) return res.status(400).send({message: err})
         else if(!user) return res.status(400).send({message: "Token not recognized"})
         else {
             if(req.body.option === "cars") {
-                Car.find({_id: {$in: user.carInventory}}, 'name price rarity', (err, cars) => {
-                    if(err) res.status(400).send({message: err})
-                    else {
-                        return res.status(200).send({data: cars})
-                    }
-                })
+                return res.status(200).send({data: user.carInventory})
             }
             else if(req.body.option === "parts") {
-                Part.find({_id: {$in: user.partsInventory}}, (err, parts) => {
-                    if(err) return res.status(400).send({message: err})
-                    else {
-                        return res.status(200).send({data: parts})
-                    }
-                })
+                return res.status(200).send({data: user.partsInventory})
             }
             else if(req.body.option === "misc") {
-                return res.status(200).send({data: []})
+                return res.status(200).send({data: user.miscInventory})
             }
             else return res.status(400).send({message: "Option not recognized"})
         }
@@ -346,12 +361,13 @@ app.post('/token', (req, res) => {
 })
 
 app.post('/auctionValidation', (req, res) => {
-    Bid.findById(req.body.id, (err, bid) => {
+    Bid.findById(req.body.id).exec((err, bid) => {
         if(!bid) return res.status(400).send({message: "Not a valid auction id"})
-        if(!bid.bidders.includes(req.body.token))return res.status(400).send({message: "You are not registered for this auction"})
-        else {
-            return res.status(200).send({message: "You're good to go to bid"})
-        }
+        User.findOne({token: req.body.token}, (err, user) => {
+            if(bid.bidders.includes(user._id)) return res.status(200).send({message: "You're good to go to bid"})
+            else return res.status(400).send({message: "You are not registered for this auction"})
+        })
+        
     })
 }) 
 
@@ -556,7 +572,7 @@ async function getCarName(id) {
 }
 
 const mainAuctionInterval = setInterval(() => {
-    Bid.find({active: true}, (err, bids) => {
+    Bid.find({active: true}).populate({path: 'bidders', model: 'user', populate: {path: 'activeBids', model: 'bid'}}).populate({path: 'bidders.activeBids', model: 'bid'}).populate({path: 'currentBidder', model: 'user'}).exec((err, bids) => {
         if(err) console.log("error")
         else {
             for(let i = 0; i < bids.length; i++) {
@@ -571,19 +587,17 @@ const mainAuctionInterval = setInterval(() => {
                     bids[i].save((err) => {
                         if(err) console.log(err)
                     })
-                    User.find({token: {$in: bids[i].bidders}}, (err, users) => {
-                        if(err) console.log(err)
-                        else if(users.length !== 0) {
-                            for(let k = 0; k < users.length; k++) {
-                                users[k].activeBids.splice(users[k].activeBids.indexOf(bids[i]._id), 1)
-                                users[k].bidHistory.push(bids[i]._id)
-                                if(users[k].token === bids[i].currentBidder) users[k].claims.push(bids[i]._id)
-                                users[k].save((err) => {
-                                    if(err) console.log(err)
-                                })
-                            }
+                    for(let k = 0; k < bids[i].bidders.length; k++) {
+                        for(let j = 0; j < bids[i].bidders[k].activeBids.length; j++) {
+                            if(bids[i].bidders[k].activeBids[j]._id.equals(bids[i]._id)) bids[i].bidders[k].activeBids.splice(j, 1)
                         }
-                    })
+                        bids[i].bidders[k].bidHistory.push(bids[i])
+                        if(bids[i].bidders[k].token === bids[i].currentBidder.token) bids[i].bidders[k].claims.push(bids[i])
+                        bids[i].bidders[k].save((err) => {
+                            if(err) console.log(err)
+                        })
+                    }
+                    
                 }
             }
         }
