@@ -594,7 +594,7 @@ const serveBids = async (socket) => {
 
 const mainAuctionInterval = setInterval(() => {
     // Handle timing in auctions and clean up inactive auctions
-    Bid.find({active: true}).populate({path: 'bidders', model: 'user', populate: {path: 'activeBids', model: 'bid'}}).populate({path: 'bidders.activeBids', model: 'bid'}).populate({path: 'currentBidder', model: 'user'}).exec((err, bids) => {
+    Bid.find({active: true}).populate('bidderObjects').populate({path: 'currentBidder', model: 'user'}).exec((err, bids) => {
         if(err) console.log("error")
         else {
             for(let i = 0; i < bids.length; i++) {
@@ -609,15 +609,15 @@ const mainAuctionInterval = setInterval(() => {
                     bids[i].save((err) => {
                         if(err) console.log(err)
                     })
-                    for(let k = 0; k < bids[i].bidders.length; k++) {
-                        for(let j = 0; j < bids[i].bidders[k].activeBids.length; j++) {
-                            if(bids[i].bidders[k].activeBids[j]._id.equals(bids[i]._id)) bids[i].bidders[k].activeBids.splice(j, 1)
+                    for(let k = 0; k < bids[i].bidderObjects.length; k++) {
+                        for(let j = 0; j < bids[i].bidderObjects[k].activeBids.length; j++) {
+                            if(bids[i].bidderObjects[k].activeBids[j]._id.equals(bids[i]._id)) bids[i].bidderObjects[k].activeBids.splice(j, 1)
                         }
-                        bids[i].bidders[k].bidHistory.push(bids[i])
+                        bids[i].bidderObjects[k].bidHistory.push(bids[i])
                         if(bids[i].currentBidder !== null) {
-                            if(bids[i].bidders[k]._id.equals(bids[i].currentBidder._id)) bids[i].bidders[k].claims.push(bids[i])
+                            if(bids[i].bidderObjects[k]._id.equals(bids[i].currentBidder._id)) bids[i].bidderObjects[k].claims.push(bids[i])
                         }
-                        bids[i].bidders[k].save((err) => {
+                        bids[i].bidderObjects[k].save((err) => {
                             if(err) console.log(err)
                         })
                     }
@@ -712,7 +712,8 @@ function createNewBids(amount) {
         newBid.timeLeft = 300;
         newBid.timeIncrement = 5;
         newBid.incrementBound = 5;
-        newBid.smallestBid = Math.floor(newCar.price * 0.005) * 10;  // 5% of car price; Doing it like that to make the least increment 10 and divisible by 10
+        newBid.smallestBid = Math.floor(newCar.price * 0.05) // NEXT LINE TEMPORARILY SUPENDED
+        //newBid.smallestBid = Math.floor(newCar.price * 0.005) * 10;  // 5% of car price; Doing it like that to make the least increment 10 and divisible by 10
         newBid.car = newCar;
 
         for(let i = 0; i < newParts.length; i++) {

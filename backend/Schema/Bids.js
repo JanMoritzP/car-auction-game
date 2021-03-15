@@ -17,4 +17,10 @@ const BidSchema = mongoose.Schema({
     car: {type: Schema.Types.ObjectId, ref: 'car'}
 })
 
+BidSchema.virtual('bidderObjects', {
+    ref: 'user',
+    localField: 'bidders._id',
+    foreignField: '_id'
+})
+
 const Bid = module.exports = mongoose.model('bid', BidSchema, 'cagDB')
