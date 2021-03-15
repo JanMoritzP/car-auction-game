@@ -212,13 +212,17 @@ app.post('/unregisterBid', (req, res) => {
         if(!user) return res.status(400).send({message: "Bad token"})
         Bid.findById(req.body.id).populate({path: 'bidders', model: 'user'}).exec((err, bid) => {
             if(!bid) return res.status(400).send({message: "Bid not found"})
-            if(!bid.bidders.includes(user)) return res.status(200).send({message: "You are not registered in this auction, so you do not need to unregister"})
+            var found = false
+            for(let i = 0; i < bid.bidders.length; i++) {
+                if(bid.bidders[i]._id.equals(user._id)) found = true
+            }
+            if(!found) return res.status(200).send({message: "You are not registered in this auction, so you do not need to unregister"})
             else {
                 for(let i = 0; i < bid.bidders.length; i++) {
-                    if(bid.bidders[i].token === user.token) bid.bidders.splice(i, 1)
+                    if(bid.bidders[i]._id.equals(user._id)) bid.bidders.splice(i, 1)
                 }
                 for(let i = 0; i < user.activeBids.length; i++) {
-                    if(user.activeBids._id.equals(bid._id)) user.activeBids.splice(i, 1)
+                    if(user.activeBids[i]._id.equals(bid._id)) user.activeBids.splice(i, 1)
                 }
                 bid.save((err) => {
                     if(err) return res.status(400).send({message: "Something went wrong updating the DB"})
@@ -238,6 +242,7 @@ app.post('/placeBid', (req, res) => {
         else if(!bid) console.log("No bid found, this should not happen")
         else {
             if(bid.bidPrice >= req.body.amount) return res.status(400).send({message: "Someone already bid a higher or the same price as you"})
+            else if(bid.bidPrice + bid.smallestBid > req.body.amount) return res.status(400).send({message: "You have to at least bid the smallest increment"})
             else {
                 User.findOne({token: req.body.token}, (err, user) => {
                     if(err) return res.status(400).send({message: err})
@@ -483,6 +488,7 @@ const serveClaimsToUser = async (socket) => {
                     }
                 })
             }
+            else io.emit("getClaims".concat(socket.query.token), [])
         }
     })
 }
@@ -538,40 +544,26 @@ const serveStatusBar = async (socket) => {
 
 
 const serveBids = async (socket) => {
-    for(let priority = 1; priority < 6; priority++) {        
-        var cars = []
-        var info = []
-        Bid.find({"priority": priority, "active": true}, '_id car bidPrice', (err, bids) => {
-            var bidIds = []
-            var bidPrices = []
+    var priorityList = [0, 1, 2, 3, 4, 5]
+    for(let priority = 5; priority > 0; priority--) {        
+        Bid.find({priority: {$in: priorityList}, active: true}).populate({path: 'car', model: 'car'}).exec((err, bids) => {
+            var info = []
             for(let i = 0; i < bids.length; i++) {
-                bidIds.push(bids[i]._id)
-                bidPrices.push(bids[i].bidPrice)
-                cars.push(getCarName(bids[i].car).then( (carName) => {return carName}))
+                info.push({
+                    bid: bids[i]._id,
+                    bidPrice: bids[i].bidPrice,
+                    timeLeft: bids[i].timeLeft,
+                    car: bids[i].car.name
+                })
             }
-            Promise.all(cars).then(values => {
-                let names = []
-                for(let i = 0; i < values.length; i++) {
-                    names.push(values[i].name)
-                    info.push({
-                        bid: bidIds[i],
-                        bidPrice: bidPrices[i],
-                        car: values[i].name
-                    })
-                }
-                if(names.length === bidIds.length) {
-                    io.emit("getBids".concat(priority), info)
-                }
-            })
+            io.emit("getBids".concat(priority), info)            
         })
+        priorityList.splice(priorityList.length - 1, 1)
     }
 }
 
-async function getCarName(id) {
-    return await Car.findById(id, 'name').exec().then((data) => {return data})
-}
-
 const mainAuctionInterval = setInterval(() => {
+    // Handle timing in auctions and clean up inactive auctions
     Bid.find({active: true}).populate({path: 'bidders', model: 'user', populate: {path: 'activeBids', model: 'bid'}}).populate({path: 'bidders.activeBids', model: 'bid'}).populate({path: 'currentBidder', model: 'user'}).exec((err, bids) => {
         if(err) console.log("error")
         else {
@@ -592,7 +584,9 @@ const mainAuctionInterval = setInterval(() => {
                             if(bids[i].bidders[k].activeBids[j]._id.equals(bids[i]._id)) bids[i].bidders[k].activeBids.splice(j, 1)
                         }
                         bids[i].bidders[k].bidHistory.push(bids[i])
-                        if(bids[i].bidders[k].token === bids[i].currentBidder.token) bids[i].bidders[k].claims.push(bids[i])
+                        if(bids[i].currentBidder !== null) {
+                            if(bids[i].bidders[k]._id.equals(bids[i].currentBidder._id)) bids[i].bidders[k].claims.push(bids[i])
+                        }
                         bids[i].bidders[k].save((err) => {
                             if(err) console.log(err)
                         })
@@ -602,7 +596,121 @@ const mainAuctionInterval = setInterval(() => {
             }
         }
     })
+    // Handle creation of new bids
+    // Rules for creation: Never under 8 bids available; If only 8 or less -> Fill up to 12 bids
+    Bid.find({active: true}, (err, bids) => {
+        if(bids.length <= 8) {
+            createNewBids(12 - bids.length)
+        }
+    })
+
 }, 1000)
+
+function createNewBids(amount) {
+    for(let times = 0; times < amount; times++) {
+        let newParts = []
+        let newCar = new Car() //Car has to be created here to get the connection to the parts
+        const nameList = ['motor', 'suspension', 'transmission', 'exhaust', 'breaks', 'paint', 'wheels']
+        const priceList = [250, 200, 250, 100, 150, 50, 100]
+        for(let i = 0; i < nameList.length; i++) {
+            if(Math.random > 0.4) {
+                newParts[i] = new Part();
+                newParts[i].name = nameList[i]
+                newParts[i].rarity = Math.floor(Math.random() * 2)
+                newParts[i].usedIn = newCar
+                if(newParts[i].rarity === 0) newParts[i].price = 0
+                else newParts[i].price = priceList[i]
+            }
+        }
+        
+        // Create new Car
+        const carNameList = ['SuperCar', 'TootTootCar', 'NeatRolly', 'GoFastGoVroom', 'DriveMe', 'FancyCar']
+        const carPriceList = [1500, 1300, 1000, 1650, 850, 2100]
+        const carRarityList = [2, 1, 1, 2, 1, 3]
+        const carIndex = Math.floor(Math.random() * 6)
+        newCar.name = carNameList[carIndex]
+        if(Math.random() < 0.1) {
+            newCar.rarity = 0
+            newCar.price = carPriceList[carIndex] * 0.1
+        } 
+        else {
+            newCar.rarity = carRarityList[carIndex]
+            newCar.price = carPriceList[carIndex];
+        } 
+            
+        for(let i = 0; i < newParts.length; i++) {
+            switch (newParts[i].name) {
+                case 'motor':
+                    newCar.status.motor = newParts[i]
+                    break;
+                case 'suspension':
+                    newCar.status.suspension = newParts[i]                
+                    break;
+                case 'transmission':
+                    newCar.status.transmission = newParts[i]                
+                    break;
+                case 'exhaust':
+                    newCar.status.exhaust = newParts[i]                
+                    break;
+                case 'breaks':
+                    newCar.status.breaks = newParts[i]                
+                    break;
+                case 'paint':
+                    newCar.status.paint = newParts[i]                
+                    break;
+                case 'wheels':
+                    newCar.status.wheels = newParts[i]                
+                    break;        
+                default:
+                    console.log("This should not have happened")
+                    console.log(newParts[i])
+                    return
+            }
+        }
+        
+        
+        // Create new Bid
+        let newBid = new Bid()
+
+        newBid.priority = newCar.rarity;
+        newBid.maxBidders = 20;
+        newBid.maxWatchers = 20;
+        newBid.bidPrice = 0;
+        newBid.currentBidder = null;
+        newBid.timeLeft = 300;
+        newBid.timeIncrement = 5;
+        newBid.incrementBound = 5;
+        newBid.smallestBid = Math.floor(newCar.price * 0.005) * 10;  // 5% of car price; Doing it like that to make the least increment 10 and divisible by 10
+        newBid.car = newCar;
+
+        for(let i = 0; i < newParts.length; i++) {
+            newParts[i].save((err, part) => {
+                if(err) {
+                    return console.log(err)
+                }
+            })
+        }
+
+        newCar.save((err, car) => {
+            if(err) {
+                if(err) {
+                    return console.log(err)
+                }
+            }
+        })
+
+        newBid.save((err, bid) => {
+            if(err) {
+                if(err) {
+                    return console.log(err)
+                }
+            }
+        })
+    }
+}
+
+
+
 
 const port = 3080
 

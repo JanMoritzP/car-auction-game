@@ -8,6 +8,7 @@ const BidSchema = mongoose.Schema({
     watchers: {type: [Schema.Types.ObjectId], ref: 'user'},
     maxWatchers: Number,
     bidPrice: Number,
+    smallestBid: Number,
     currentBidder: {type: Schema.Types.ObjectId, ref: 'user'},
     timeLeft: Number,
     timeIncrement: Number,
@@ -15,17 +16,5 @@ const BidSchema = mongoose.Schema({
     active: {type: Boolean, default: true},
     car: {type: Schema.Types.ObjectId, ref: 'car'}
 })
-
-BidSchema.methods.bid = function(price, bidder) {
-    if(price > this.bidPrice && this.bidders.indexOf(bidder) != -1) {
-        this.bidPrice = price;
-        this.currentBidder = bidder;
-        if(this.timeLeft < this.incrementBound) this.timeLeft += this.timeIncrement
-    }
-    else {
-        return "You cannot bid on this as you are either not an allowed bidder or you tried to bid less or equal to the current price"
-    }
-}
-
 
 const Bid = module.exports = mongoose.model('bid', BidSchema, 'cagDB')

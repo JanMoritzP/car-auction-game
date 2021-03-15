@@ -14,6 +14,7 @@ export default function YourAuctions() {
         socket.emit("subToUserClaims", {query: {token: localStorage.getItem("token")}})
         socket.on("getClaims".concat(localStorage.getItem("token")), data => {
             setInfo(data);
+            console.log(data)
         });
         return () => {
             socket.emit("unsubFromUserClaims")
@@ -33,18 +34,27 @@ export default function YourAuctions() {
                 token: localStorage.getItem("token")
             })
         })
-        info.splice(info.indexOf(id), 1)
+    }
+
+    function dispClaims() {
+        if(info.length > 0) {
+            return (
+                <div>
+                    {info.map(info => 
+                        <div class="yourClaimsCards" >
+                            <p>{info.name}</p>
+                            <p>{info.price}</p>
+                            <button onClick={() => handleClick(info.id)}>Claim</button>
+                        </div>
+                    )}
+                </div>
+            )
+        }
     }
 
     return(
         <div class="yourClaimsWrapper">
-            {info.map(info => 
-                <div class="yourClaimsCards" >
-                    <p>{info.name}</p>
-                    <p>{info.price}</p>
-                    <button onClick={() => handleClick(info.id)}>Claim</button>
-                </div>
-            )}
+            {dispClaims()}
         </div>
     )
 }

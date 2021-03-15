@@ -69,6 +69,7 @@ export default function Dashboard({ setToken }) {
                 <div class="bidDivs" id={info.bid.toString().concat("div")}>
                     <p>{info.car}</p>
                     <p>{info.bidPrice}</p>
+                    <p>{info.timeLeft}</p>
                     <button onClick={() => handleClick(info.bid)} id={info.bid} class="bidButtons">Enter auction</button>
                 </div>)}
             </div>
