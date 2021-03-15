@@ -9,6 +9,7 @@ export default function AuctionRoom() {
     const router = useRouter()
 
     const [amount, setAmount] = useState(0);
+    const [smallestBid, setSmallestBid] = useState(0);
     const [car, setCar] = useState(null);
     const [price, setPrice] = useState(0);
     const [highestBidder, setHighestBidder] = useState(null);
@@ -41,9 +42,11 @@ export default function AuctionRoom() {
         socket.on("auctionRoom".concat(id), data => {
             if(data.active === false) router.push('/dashboard')
             setCar(data.car)
+            console.log(data.car)
             setPrice(data.price)
             setHighestBidder(data.currentBidder)
             setTimeLeft(data.timeLeft)
+            setSmallestBid(data.smallestBid)
         })
         return () => {
             socket.emit("leaveAuctionRoom", id)
@@ -96,7 +99,10 @@ export default function AuctionRoom() {
             return <button onClick={handleBid} disabled={true}>Bid</button>
         }
         else {
-            return <button onClick={handleBid} disabled={false}>Bid</button>
+            if(amount < price + smallestBid) {
+                return <button onClick={handleBid} disabled={true}>Bid</button>
+            }
+            else return <button onClick={handleBid} disabled={false}>Bid</button>
         }
     }
 
@@ -104,25 +110,98 @@ export default function AuctionRoom() {
         if(highestBidder === position) {
             return <p>You are currently the highest bidder</p>
         }
+        else if(highestBidder === 0) {
+            return <p>No one has bid on this object yet</p>
+        }
         else {
             return <p>Highest Bidder: {highestBidder}</p>
         }
+    }
+
+    function getParts(status) {
+        if(status.motor === null && status.suspension === null
+            && status.transmission === null && status.breaks === null
+            && status.paint === null && status.exhaust === null
+            && status.wheels === null) {
+                return <p>This car does not contain any parts</p>
+        }
+        var parts = [status.motor, status.suspension, status.transmission, status.breaks, status.paint, status.exhaust, status.wheels]
+        for(let i = 0; i < parts.length; i++) {
+            if(parts[i] === null) {
+                parts.splice(i, 1)
+                i--
+            }
+        }
+        console.log(parts)
+        return (
+            <div>
+                {parts.map(part => 
+                    <div>
+                        <h3>{part.name}</h3>
+                        <p>{part.brand}</p>
+                        <p>{part.rarity}</p>
+                        <p>{part.price}</p>
+                    </div>
+                )}
+            </div>
+        )
+    }
+
+    function getCarInfo(car) {
+        /*
+            Display: Name; Brand; Price?; Rarity; Status
+            Status: Name; Rarity; Brand; Price?
+        */
+        if(car === null) return <p>Loading...</p>
+        
+        return(
+            <div>
+                <h3>{car.name}</h3>
+                <p>{car.brand}</p>
+                <p>{car.rarity}</p>
+                <p>{car.price}</p>
+                <div>
+                    {getParts(car.status)}
+                </div>
+            </div>
+        )
+    }
+
+    function formatTime(time) {
+        var timeString
+        if(time < 60) return time + "s"
+        else if(time < 3600) {
+            if(time%60 !== 0) timeString = Math.floor(time/60).toString() + "m " + time%60 + "s"
+            else timeString = Math.floor(time/60).toString() + " m"
+            return timeString
+        }
+        else if(time < 3600*24) {
+            var seconds = ""
+            var minutes = ""
+            var hours
+            if(time%60 !== 0) seconds = time%60 + "s" 
+            if(Math.floor(time/60)%60 !== 0) minutes = Math.floor(time/60)%60 + "m "
+            hours = Math.floor(time/3600) + "h "
+            return hours + minutes + seconds
+        }
+        else return "Much time left"
     }
 
     return(
         <div>
             <h2 class="auctionRoomHeader">Auction Room</h2>
             <div class="auctionBidWrapper">
-                <p>Currently bidding on: {car}</p>
+                {getCarInfo(car)}
                 <p>Current price: {price}</p>
-                <p>Time Left: {timeLeft}</p>
+                <p>Smallest increment: {smallestBid}</p>
+                <p>Time Left: {formatTime(timeLeft)}</p>
                 {highestBidderPar()}
             </div>
             <div class="auctionRoomButtons">
                 <button onClick={quickBid} disabled={true}>Quick Bid</button>
                 <label>
                     <p>Amount</p>
-                    <input type="text" onChange={e => setAmount(e.target.value)} defaultValue="0"/>
+                    <input type="number" onChange={e => setAmount(e.target.value)} defaultValue="0"/>
                 </label>
                 {getBidButton()}
                 <button onClick={unregister}>Unregister</button>

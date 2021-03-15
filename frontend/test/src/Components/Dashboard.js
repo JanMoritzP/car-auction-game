@@ -30,7 +30,7 @@ export default function Dashboard({ setToken }) {
     }, [])
 
     useEffect(() => {
-        const socket = SocketIOClient("http://localhost:3080");
+        const socket = SocketIOClient("http://localhost:3080", {query: {token: localStorage.getItem("token")}});
         socket.emit("subToBids", {query: {token: localStorage.getItem("token")}})
         socket.on("getBids".concat(priority.toString()), data => {
             setInfo(data);
@@ -61,6 +61,26 @@ export default function Dashboard({ setToken }) {
         })
     }
 
+    function formatTime(time) {
+        var timeString
+        if(time < 60) return time + "s"
+        else if(time < 3600) {
+            if(time%60 !== 0) timeString = Math.floor(time/60).toString() + "m " + time%60 + "s"
+            else timeString = Math.floor(time/60).toString() + " m"
+            return timeString
+        }
+        else if(time < 3600*24) {
+            var seconds = ""
+            var minutes = ""
+            var hours
+            if(time%60 !== 0) seconds = time%60 + "s" 
+            if(Math.floor(time/60)%60 !== 0) minutes = Math.floor(time/60)%60 + "m "
+            hours = Math.floor(time/3600) + "h "
+            return hours + minutes + seconds
+        }
+        else return "Much time left"
+    }
+
     return(
         <div>
             <h2 class="dashBoardHeader">Dashboard boiii</h2>
@@ -69,7 +89,7 @@ export default function Dashboard({ setToken }) {
                 <div class="bidDivs" id={info.bid.toString().concat("div")}>
                     <p>{info.car}</p>
                     <p>{info.bidPrice}</p>
-                    <p>{info.timeLeft}</p>
+                    <p>{formatTime(info.timeLeft)}</p>
                     <button onClick={() => handleClick(info.bid)} id={info.bid} class="bidButtons">Enter auction</button>
                 </div>)}
             </div>

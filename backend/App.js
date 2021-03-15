@@ -43,6 +43,16 @@ app.post('/login', (req, res) => {
         else {
             if(user.validatePassword(req.body.password)) {
                 user.createToken()
+                const checkToken = () => {
+                    User.findOne({token: user.token}, (err, user) => {
+                        if(err) console.log(err)
+                        else if(user) {
+                            user.createToken()
+                            checkToken()
+                        }
+                    })
+                }
+                checkToken()
                 user.save((err, user) => {
                     if(err) return res.status(400).send({message: err})
                 })
@@ -376,22 +386,31 @@ app.post('/auctionValidation', (req, res) => {
     })
 }) 
 
-var statusInterval
-var serveBidsInterval
-var serveUserAuctions
-var serveUserClaims
 
 var auctionIntervals = []
 var auctionIds = []
 
 io.on("connection", (socket) => {
+    const statusInterval = setInterval(() => serveStatusBar(socket), 1000)
+    const serveBidsInterval = setInterval(() => serveBids(socket), 1000)
+    const serveUserAuctions = setInterval(() => serveAuctionsToUser(socket), 1000)
+    const serveUserClaims = setInterval(() => serveClaimsToUser(socket), 1000)
 
+    
+
+    socket.on("disconnect", () => {
+        clearInterval(statusInterval)
+        clearInterval(serveBidsInterval)
+        clearInterval(serveUserAuctions)
+        clearInterval(serveUserClaims)
+    })
+    /*
     //STATUS RELATED SUBS
     socket.on("subToStatus", (socket) => {
         statusInterval = setInterval(() => serveStatusBar(socket), 1000)
     })
     socket.on("subToBids", (socket) => {
-        serveBidsInterval = setInterval(() => serveBids(socket), 1000);
+        serveBidsInterval = setInterval(() => serveBids(socket), 1000)
     })
     socket.on("subToUserAuctions", (socket) => {
         serveUserAuctions = setInterval(() => serveAuctionsToUser(socket), 1000)
@@ -413,16 +432,23 @@ io.on("connection", (socket) => {
     socket.on("unsubFromUserClaims", () => {
         clearInterval(serveUserClaims)
     })
+    
+    IF YOU BRING THIS BACK REMEMBER TO CHANGE socket.handshake.query.token to socket.query.token
 
+    */
     
     socket.on("joinAuctionRoom", (data) => {
+        if(!auctionIds.includes(data.id)){
+            auctionIds.push(data.id)
+            auctionIntervals.push(setInterval(() => getAuctionData(data.id), 1000))
+        }
         socket.join(data.id)
-        auctionIntervals.push(setInterval(() => getAuctionData(data.id), 1000))
-        auctionIds.push(data.id)
-        Bid.findById(data.id, (err, bid) => {
+        Bid.findById(data.id).populate({path: 'bidders', model: 'user'}).exec((err, bid) => {
             if(err) console.log(err)
             else {
-                io.emit(data.token, bid.bidders.indexOf(data.token))
+                for(let i = 0; i < bid.bidders.length; i++) {
+                    if(bid.bidders[i].token === data.token) io.emit(data.token, i)
+                }
             }
         })
     })
@@ -438,29 +464,33 @@ io.on("connection", (socket) => {
 })
 
 const getAuctionData = async (roomId) => {
-    Bid.findById(roomId, (err, bid) => {
+    const populationParams = {
+        path: 'car',
+        model: 'car',
+        populate: {
+            path: 'status.motor status.suspension status.transmission status.breaks status.paint status.exhaust status.wheels',
+            model: 'part'
+        }
+    }
+    Bid.findById(roomId).populate(populationParams).exec((err, bid) => {
         if(err) console.log(err)
         else if(!bid) console.log("No bid found, this should not happen")
         else {
-            Car.findById(bid.car, 'name', (err, car) => {
-                if(err) console.log(err)
-                else if(!car) console.log("No car found, this should not happen")
-                else {
-                    io.to(roomId).emit("auctionRoom".concat(roomId), {
-                        price: bid.bidPrice,
-                        timeLeft: bid.timeLeft,
-                        currentBidder: bid.bidders.indexOf(bid.currentBidder) + 1,
-                        active: bid.active,
-                        car: car.name
-                    })
-                }
+            io.to(roomId).emit("auctionRoom".concat(roomId), {
+                price: bid.bidPrice,
+                timeLeft: bid.timeLeft,
+                currentBidder: bid.bidders.indexOf(bid.currentBidder) + 1,
+                active: bid.active,
+                smallestBid: bid.smallestBid,
+                car: bid.car
             })
+        
         }
     })
 }
 
 const serveClaimsToUser = async (socket) => {
-    User.findOne({token: socket.query.token}, 'claims', (err, user) => {
+    User.findOne({token: socket.handshake.query.token}, 'claims', (err, user) => {
         if(err) console.log(err)
         else if(!user) console.log("No user found, this should not happen")
         else {
@@ -482,19 +512,19 @@ const serveClaimsToUser = async (socket) => {
                                         id: bids[i]._id
                                     })
                                 }
-                                io.emit("getClaims".concat(socket.query.token), info)
+                                io.emit("getClaims".concat(socket.handshake.query.token), info)
                             }
                         })
                     }
                 })
             }
-            else io.emit("getClaims".concat(socket.query.token), [])
+            else io.emit("getClaims".concat(socket.handshake.query.token), [])
         }
     })
 }
 
 const serveAuctionsToUser = async (socket) => {
-    User.findOne({token: socket.query.token}, 'activeBids', (err, user) => {
+    User.findOne({token: socket.handshake.query.token}, 'activeBids', (err, user) => {
         if(err) console.log(err)
         else if(!user) console.log("No users found :( or no users connected")
         else {
@@ -516,7 +546,7 @@ const serveAuctionsToUser = async (socket) => {
                                         id: bids[i]._id
                                     })
                                 }
-                                io.emit("getAuctions".concat(socket.query.token), info)
+                                io.emit("getAuctions".concat(socket.handshake.query.token), info)
                             }
                         })
                     }
@@ -529,10 +559,10 @@ const serveAuctionsToUser = async (socket) => {
 
 
 const serveStatusBar = async (socket) => {
-    User.findOne({token: socket.query.token}, 'token money activeBids claims', (err, user) => {
+    User.findOne({token: socket.handshake.query.token}, 'token money activeBids claims', (err, user) => {
         if(err) console.log(err)
         else if(user) {
-            io.emit("getStatus".concat(socket.query.token), {
+            io.emit("getStatus".concat(socket.handshake.query.token), {
                 money: user.money,
                 auctions: user.activeBids.length,
                 claims: user.claims.length
@@ -613,13 +643,15 @@ function createNewBids(amount) {
         const nameList = ['motor', 'suspension', 'transmission', 'exhaust', 'breaks', 'paint', 'wheels']
         const priceList = [250, 200, 250, 100, 150, 50, 100]
         for(let i = 0; i < nameList.length; i++) {
-            if(Math.random > 0.4) {
-                newParts[i] = new Part();
-                newParts[i].name = nameList[i]
-                newParts[i].rarity = Math.floor(Math.random() * 2)
-                newParts[i].usedIn = newCar
-                if(newParts[i].rarity === 0) newParts[i].price = 0
-                else newParts[i].price = priceList[i]
+            if(Math.random() > 0.4) {
+                var tmpPart = new Part()
+                tmpPart = new Part()
+                tmpPart.name = nameList[i]
+                tmpPart.rarity = Math.floor(Math.random() * 2)
+                tmpPart.usedIn = newCar
+                if(tmpPart.rarity === 0) tmpPart.price = 0
+                else tmpPart.price = priceList[i]
+                newParts.push(tmpPart)
             }
         }
         
