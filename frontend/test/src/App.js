@@ -10,6 +10,7 @@ import StatusBar from './Components/StatusBar'
 import AuctionRoom from './Components/AuctionRoom'
 import YourAuctions from './Components/YourAuctions';
 import YourClaims from './Components/YourClaims';
+import ModifyCar from './Components/ModifyCar'
 import useToken from './Components/Functions/useToken'
 
 import './Components/css/App.css'
@@ -56,6 +57,9 @@ function App() {
                     </Route>
                     <Route path="/yourClaims">
                         <YourClaims />
+                    </Route>
+                    <Route path="/modifyCar/:id">
+                        <ModifyCar />
                     </Route>
                 </Switch>
             </BrowserRouter>

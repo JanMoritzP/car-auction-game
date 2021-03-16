@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react'
+import useRouter from './Functions/useRouter'
 import './css/Inventory.css'
 
 export default function Inventory() {
 
+    const router = useRouter()
     const [cars, setCars] = useState([]);
     const [parts, setParts] = useState([]);
     const [misc, setMisc] = useState([])
@@ -35,13 +37,16 @@ export default function Inventory() {
         })
     }, [option]);
 
+    function redirectCar(id) {
+        router.push('modifyCar/'.concat(id))
+    }
 
     function getInventory() {
         if(option === "cars") {
             return (
                 <div class="mainInvDiv">
                     {cars.map(car => 
-                        <div class="invCars">
+                        <div class="invCars" onClick={() => redirectCar(car._id)}>
                             <p>{car.name}</p>
                             <p>{car.price}</p>
                             <p>{car.rarity}</p>
