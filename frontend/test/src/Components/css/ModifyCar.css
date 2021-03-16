@@ -5,3 +5,109 @@
     color: white;
     font-size: xx-large;    
 }
+
+.carShape {
+    position: absolute;
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 1;
+    z-index: -2;
+    width: 50vw;
+    height: 50vh;
+    left: 25vw;
+    top: 25vh;
+    background-image: url('./../pics/cag_car.png');
+}
+
+.motorShape, .motorShapeAlt {
+
+}
+
+.transmissionShape, .transmissionShapeAlt {
+    
+}
+
+.suspensionShape, .suspensionShapeAlt {
+    
+}
+
+.exhaustShape, .exhaustShapeAlt {
+    
+}
+
+.paintShape, .paintShapeAlt {
+    
+}
+
+.breaksShape, .breaksShapeAlt {
+    
+}
+
+.wheelsShape1, .wheelsShape2 {
+    position: absolute;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-image: url('./../pics/cag_wheel_blue.png');
+    width: 6rem;
+    height: 6rem;
+    z-index: 1;
+    opacity: 1;
+    transition: transform ease-out 500ms, opacity ease-in 500ms,
+        left ease-out 500ms, bottom ease-out 500ms;
+    transform-origin: center;
+}
+
+.wheelsShape1Alt, .wheelsShape2Alt {
+    width: 6rem;
+    height: 6rem;
+    position: absolute;
+    background-image: url('./../pics/cag_wheel_blue_glow.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    z-index: 1;
+    opacity: 0;
+    transition: all ease-out 500ms;
+    transform-origin: center;
+}
+
+.wheelsShape1, .wheelsShape1Alt {
+    left: 13%;
+    bottom: 15%;
+}
+
+.wheelsShape2, .wheelsShape2Alt {
+    left: 60%;
+    bottom: 15%;    
+}
+
+.altWheelsHover {
+    opacity: 1;
+    transform-origin: center;
+    transform: scale(1.2);
+    transition: all ease-out 500ms;
+}
+
+.wheelsHover {
+    opacity: 0;
+    transform-origin: center;
+    transform: scale(1.2); 
+    transition: transform ease-out 500ms, opacity ease-in 500ms; 
+}
+
+
+
+.modifyCarSaveButton {
+    position: absolute;
+    width: 8rem; 
+    height: 5rem;
+    right: 10vw;
+    top: 40vh;
+}
+
+.modifyCarBackButton {
+    position: absolute;
+    right: 10vw;
+    bottom: 12vh;
+    width: 8rem;
+    height: 5rem;
+}
