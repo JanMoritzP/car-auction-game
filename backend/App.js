@@ -124,7 +124,7 @@ const getAuctionData = async (roomId) => {
         path: 'car',
         model: 'car',
         populate: {
-            path: 'status.motor status.suspension status.transmission status.breaks status.paint status.exhaust status.wheels',
+            path: 'status.motor status.suspension status.transmission status.brakes status.paint status.exhaust status.wheels',
             model: 'part'
         }
     }
@@ -296,7 +296,7 @@ function createNewBids(amount) {
     for(let times = 0; times < amount; times++) {
         let newParts = []
         let newCar = new Car() //Car has to be created here to get the connection to the parts
-        const nameList = ['motor', 'suspension', 'transmission', 'exhaust', 'breaks', 'paint', 'wheels']
+        const nameList = ['motor', 'suspension', 'transmission', 'exhaust', 'brakes', 'paint', 'wheels']
         const priceList = [250, 200, 250, 100, 150, 50, 100]
         for(let i = 0; i < nameList.length; i++) {
             if(Math.random() > 0.4) {
@@ -340,8 +340,8 @@ function createNewBids(amount) {
                 case 'exhaust':
                     newCar.status.exhaust = newParts[i]                
                     break;
-                case 'breaks':
-                    newCar.status.breaks = newParts[i]                
+                case 'brakes':
+                    newCar.status.brakes = newParts[i]                
                     break;
                 case 'paint':
                     newCar.status.paint = newParts[i]                

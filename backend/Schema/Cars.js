@@ -10,7 +10,7 @@ const CarSchema = mongoose.Schema({
         motor: {type: Schema.Types.ObjectId, ref: 'part', default: null},
         suspension: {type: Schema.Types.ObjectId, ref: 'part', default: null},
         transmission: {type: Schema.Types.ObjectId, ref: 'part', default: null},
-        breaks: {type: Schema.Types.ObjectId, ref: 'part', default: null},
+        brakes: {type: Schema.Types.ObjectId, ref: 'part', default: null},
         paint: {type: Schema.Types.ObjectId, ref: 'part', default: null},
         exhaust: {type: Schema.Types.ObjectId, ref: 'part', default: null},
         wheels: {type: Schema.Types.ObjectId, ref: 'part', default: null}

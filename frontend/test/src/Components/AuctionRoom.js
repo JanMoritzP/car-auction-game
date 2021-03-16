@@ -120,12 +120,12 @@ export default function AuctionRoom() {
 
     function getParts(status) {
         if(status.motor === null && status.suspension === null
-            && status.transmission === null && status.breaks === null
+            && status.transmission === null && status.brakes === null
             && status.paint === null && status.exhaust === null
             && status.wheels === null) {
                 return <p>This car does not contain any parts</p>
         }
-        var parts = [status.motor, status.suspension, status.transmission, status.breaks, status.paint, status.exhaust, status.wheels]
+        var parts = [status.motor, status.suspension, status.transmission, status.brakes, status.paint, status.exhaust, status.wheels]
         for(let i = 0; i < parts.length; i++) {
             if(parts[i] === null) {
                 parts.splice(i, 1)

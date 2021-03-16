@@ -10,10 +10,23 @@ export default function ModifyCar() {
     const [parts, setParts] = useState([])
     const [car, setCar] = useState(null)
     const [inv, setInv] = useState([])
+    const [contextMenuClasses, setContextMenuClasses] = useState("modifyCarContextMenu")
     const [wheel1Classes, setWheel1Classes] = useState("wheelsShape1")
     const [wheel2Classes, setWheel2Classes] = useState("wheelsShape2")
     const [wheel1AltClasses, setWheel1AltClasses] = useState("wheelsShape1Alt")
     const [wheel2AltClasses, setWheel2AltClasses] = useState("wheelsShape2Alt")
+    const [motorClasses, setMotorClasses] = useState("motorShape")
+    const [motorAltClasses, setMotorAltClasses] = useState("motorShapeAlt")
+    const [suspensionClasses, setSuspensionClasses] = useState("suspensionShape")
+    const [suspensionAltClasses, setSuspensionAltClasses] = useState("suspensionShapeAlt")
+    const [paintClasses, setPaintClasses] = useState("paintShape")
+    const [paintAltClasses, setPaintAltClasses] = useState("paintShapeAlt")
+    const [exhaustClasses, setExhaustClasses] = useState("exhaustShape")
+    const [exhaustAltClasses, setExhaustAltClasses] = useState("exhaustShapeAlt")
+    const [transmissionClasses, setTransmissionClasses] = useState("transmissionShape")
+    const [transmissionAltClasses, setTransmissionAltClasses] = useState("transmissionShapeAlt")
+    const [brakesClasses, setBrakesClasses] = useState("brakesShape")
+    const [brakesAltClasses, setBrakesAltClasses] = useState("brakesShapeAlt")
 
     useEffect(() => {
         fetch('http://localhost:3080/getCarInfo', {
@@ -51,7 +64,7 @@ export default function ModifyCar() {
         })
     }
 
-    function handleClick(type) {
+    function handleClick(type, number) {
         fetch('http://localhost:3080/getInventory', {
             method: "POST",
             headers: {
@@ -65,6 +78,45 @@ export default function ModifyCar() {
             .then(data => {
                 setInv(data.data.filter(part => part.name === type))
             })
+            setContextMenuClasses("modifyCarContextMenu modifyCarContextMenuClicked")
+            adjustContextMenuPosition(type, number)
+    }
+
+    function adjustContextMenuPosition(type, number) {
+        if(type === "wheels") {
+            if(number === 1) {
+                document.getElementsByClassName("modifyCarContextMenu")[0].style.left = "34%"
+                document.getElementsByClassName("modifyCarContextMenu")[0].style.bottom = "37%"
+            }
+            else if(number === 2) {
+                document.getElementsByClassName("modifyCarContextMenu")[0].style.left = "57%"
+                document.getElementsByClassName("modifyCarContextMenu")[0].style.bottom = "37%"
+            }
+        }
+        else if(type === "motor") {
+            document.getElementsByClassName("modifyCarContextMenu")[0].style.left = "62%"
+            document.getElementsByClassName("modifyCarContextMenu")[0].style.bottom = "46%"            
+        }
+        else if(type === "transmission") {
+            document.getElementsByClassName("modifyCarContextMenu")[0].style.left = "53%"
+            document.getElementsByClassName("modifyCarContextMenu")[0].style.bottom = "45%"
+        }
+        else if(type === "exhaust") {
+            document.getElementsByClassName("modifyCarContextMenu")[0].style.left = "26%"
+            document.getElementsByClassName("modifyCarContextMenu")[0].style.bottom = "42%"
+        }
+        else if(type === "suspension") {
+            document.getElementsByClassName("modifyCarContextMenu")[0].style.left = "47%"
+            document.getElementsByClassName("modifyCarContextMenu")[0].style.bottom = "45%"
+        }
+        else if(type === "paint") {
+            document.getElementsByClassName("modifyCarContextMenu")[0].style.left = "45%"
+            document.getElementsByClassName("modifyCarContextMenu")[0].style.bottom = "65%"            
+        }
+        else if(type === "brakes") {
+            document.getElementsByClassName("modifyCarContextMenu")[0].style.left = "39%"
+            document.getElementsByClassName("modifyCarContextMenu")[0].style.bottom = "43%"
+        }
     }
 
     function switchPart(part, type) {
@@ -85,10 +137,34 @@ export default function ModifyCar() {
 
     function handleHover(type) {
         if(type === "wheels") {
-            setWheel1Classes("wheelsShape1 wheelsHover")
-            setWheel2Classes("wheelsShape2 wheelsHover")
-            setWheel1AltClasses("wheelsShape1Alt altWheelsHover")
-            setWheel2AltClasses("wheelsShape2Alt altWheelsHover")
+            setWheel1Classes("wheelsShape1 partsHover")
+            setWheel2Classes("wheelsShape2 partsHover")
+            setWheel1AltClasses("wheelsShape1Alt altPartsHover")
+            setWheel2AltClasses("wheelsShape2Alt altPartsHover")
+        }
+        else if(type === "motor") {
+            setMotorClasses("motorShape partsHover")
+            setMotorAltClasses("motorShapeAlt altPartsHover")
+        }
+        else if(type === "transmission") {
+            setTransmissionClasses("transmissionShape partsHover")
+            setTransmissionAltClasses("transmissionShapeAlt altPartsHover")
+        }
+        else if(type === "exhaust") {
+            setExhaustClasses("exhaustShape partsHover")
+            setExhaustAltClasses("exhaustShapeAlt altPartsHover")
+        }
+        else if(type === "suspension") {
+            setSuspensionClasses("suspensionShape partsHover")
+            setSuspensionAltClasses("suspensionShapeAlt altPartsHover")
+        }
+        else if(type === "paint") {
+            setPaintClasses("paintShape partsHover")
+            setPaintAltClasses("paintShapeAlt altPartsHover")            
+        }
+        else if(type === "brakes") {
+            setBrakesClasses("brakesShape partsHover")
+            setBrakesAltClasses("brakesShapeAlt altPartsHover")
         }
 
     }
@@ -100,36 +176,60 @@ export default function ModifyCar() {
             setWheel1AltClasses("wheelsShape1Alt")
             setWheel2AltClasses("wheelsShape2Alt")            
         }
+        else if(type === "motor") {
+            setMotorClasses("motorShape")
+            setMotorAltClasses("motorShapeAlt")
+        }
+        else if(type === "transmission") {
+            setTransmissionClasses("transmissionShape")
+            setTransmissionAltClasses("transmissionShapeAlt")
+        }
+        else if(type === "exhaust") {
+            setExhaustClasses("exhaustShape")
+            setExhaustAltClasses("exhaustShapeAlt")
+        }
+        else if(type === "suspension") {
+            setSuspensionClasses("suspensionShape")
+            setSuspensionAltClasses("suspensionShapeAlt")
+        }
+        else if(type === "paint") {
+            setPaintClasses("paintShape")
+            setPaintAltClasses("paintShapeAlt")            
+        }
+        else if(type === "brakes") {
+            setBrakesClasses("brakesShape")
+            setBrakesAltClasses("brakesShapeAlt")
+        }
     }
 
     return(
         <div>
             <h2 class="modifyCarHeader">Modify a Car</h2>
             <div class="carShape">
-                <div class="motorShape" onClick={() => handleClick("motor")} onMouseEnter={() => handleHover("motor")} onMouseLeave={() => deHandleHover("motor")}></div>
-                <div class="motorShapeAlt" onClick={() => handleClick("motor")} onMouseEnter={() => handleHover("motor")} onMouseLeave={() => deHandleHover("motor")}></div>
+                <div class={motorClasses} onClick={() => handleClick("motor", 0)} onMouseEnter={() => handleHover("motor")} onMouseLeave={() => deHandleHover("motor")}></div>
+                <div class={motorAltClasses} onClick={() => handleClick("motor", 0)} onMouseEnter={() => handleHover("motor")} onMouseLeave={() => deHandleHover("motor")}></div>
                 
-                <div class="suspensionShape" onClick={() => handleClick("suspension")}></div>
-                <div class="suspensionShapeAlt" onClick={() => handleClick("suspension")}></div>
+                <div class={suspensionClasses} onClick={() => handleClick("suspension", 0)} onMouseEnter={() => handleHover("suspension")} onMouseLeave={() => deHandleHover("suspension")}></div>
+                <div class={suspensionAltClasses} onClick={() => handleClick("suspension", 0)} onMouseEnter={() => handleHover("suspension")} onMouseLeave={() => deHandleHover("suspension")}></div>
                 
-                <div class="paintShape" onClick={() => handleClick("paint")}></div>
-                <div class="paintShapeAlt" onClick={() => handleClick("paint")}></div>
+                <div class={paintClasses} onClick={() => handleClick("paint", 0)} onMouseEnter={() => handleHover("paint")} onMouseLeave={() => deHandleHover("paint")}></div>
+                <div class={paintAltClasses} onClick={() => handleClick("paint", 0)} onMouseEnter={() => handleHover("paint")} onMouseLeave={() => deHandleHover("paint")}></div>
 
-                <div class="transmissionShape" onClick={() => handleClick("transmission")}></div>
-                <div class="transmissionShapeAlt" onClick={() => handleClick("transmission")}></div>
+                <div class={transmissionClasses} onClick={() => handleClick("transmission", 0)} onMouseEnter={() => handleHover("transmission")} onMouseLeave={() => deHandleHover("transmission")}></div>
+                <div class={transmissionAltClasses} onClick={() => handleClick("transmission", 0)} onMouseEnter={() => handleHover("transmission")} onMouseLeave={() => deHandleHover("transmission")}></div>
                 
-                <div class="exhaustShape" onClick={() => handleClick("exhaust")}></div>
-                <div class="exhaustShapeAlt" onClick={() => handleClick("exhaust")}></div>
+                <div class={exhaustClasses} onClick={() => handleClick("exhaust", 0)} onMouseEnter={() => handleHover("exhaust")} onMouseLeave={() => deHandleHover("exhaust")}></div>
+                <div class={exhaustAltClasses} onClick={() => handleClick("exhaust", 0)} onMouseEnter={() => handleHover("exhaust")} onMouseLeave={() => deHandleHover("exhaust")}></div>
                 
-                <div class="breaksShape" onClick={() => handleClick("breaks")}></div>
-                <div class="breaksShapeAlt" onClick={() => handleClick("breaks")}></div>
+                <div class={brakesClasses} onClick={() => handleClick("brakes", 0)} onMouseEnter={() => handleHover("brakes")} onMouseLeave={() => deHandleHover("brakes")}></div>
+                <div class={brakesAltClasses} onClick={() => handleClick("brakes", 0)} onMouseEnter={() => handleHover("brakes")} onMouseLeave={() => deHandleHover("brakes")}></div>
 
-                <div class={wheel1Classes} onClick={() => handleClick("wheels")} onMouseEnter={() => handleHover("wheels")} onMouseLeave={() => deHandleHover("wheels")}></div>
-                <div class={wheel1AltClasses} onClick={() => handleClick("wheels")} onMouseEnter={() => handleHover("wheels")} onMouseLeave={() => deHandleHover("wheels")}></div>
-                <div class={wheel2Classes} onClick={() => handleClick("wheels")} onMouseEnter={() => handleHover("wheels")} onMouseLeave={() => deHandleHover("wheels")}></div>
-                <div class={wheel2AltClasses} onClick={() => handleClick("wheels")} onMouseEnter={() => handleHover("wheels")} onMouseLeave={() => deHandleHover("wheels")}></div>
+                <div class={wheel1Classes} onClick={() => handleClick("wheels", 1)} onMouseEnter={() => handleHover("wheels")} onMouseLeave={() => deHandleHover("wheels")}></div>
+                <div class={wheel1AltClasses} onClick={() => handleClick("wheels", 1)} onMouseEnter={() => handleHover("wheels")} onMouseLeave={() => deHandleHover("wheels")}></div>
+                <div class={wheel2Classes} onClick={() => handleClick("wheels", 2)} onMouseEnter={() => handleHover("wheels")} onMouseLeave={() => deHandleHover("wheels")}></div>
+                <div class={wheel2AltClasses} onClick={() => handleClick("wheels", 2)} onMouseEnter={() => handleHover("wheels")} onMouseLeave={() => deHandleHover("wheels")}></div>
             </div>
-            <div class="modifyCarContextMenu">
+            <div class={contextMenuClasses}>
                 {inv.map(part => 
                     <div onClick={() => switchPart(part, part.name)}>
                         <p>{part.name}</p>
@@ -137,6 +237,7 @@ export default function ModifyCar() {
                         <p>{part.rarity}</p> 
                     </div>
                     )}
+                <button onClick={() => setContextMenuClasses("modifyCarContextMenu")}>X</button>
             </div>
             
             <button onClick={handleSave} class="modifyCarSaveButton">Save</button>

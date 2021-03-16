@@ -20,8 +20,8 @@ export default function Admin() {
     const [transmissionPrice, setTransmissionPrice] = useState(0)
     const [exhaustRarity, setExhaustRarity] = useState(0);
     const [exhaustPrice, setExhaustPrice] = useState(0)
-    const [breaksRarity, setBreaksRarity] = useState(0);
-    const [breaksPrice, setBreaksPrice] = useState(0)
+    const [brakesRarity, setbrakesRarity] = useState(0);
+    const [brakesPrice, setbrakesPrice] = useState(0)
     const [paintRarity, setPaintRarity] = useState(0);
     const [paintPrice, setPaintPrice] = useState(0)
     const [wheelsRarity, setWheelsRarity] = useState(0);
@@ -57,9 +57,9 @@ export default function Admin() {
                 "rarity": rarity
             },
             "parts": {
-                "name": ['motor', 'suspension', 'transmission', 'exhaust', 'breaks', 'paint', 'wheels'],
-                "rarity": [motorRarity, suspensionRarity, transmissionRarity, exhaustRarity, breaksRarity, paintRarity, wheelsRarity],
-                "price": [motorPrice, suspensionPrice, transmissionPrice, exhaustPrice, breaksPrice, paintPrice, wheelsPrice]
+                "name": ['motor', 'suspension', 'transmission', 'exhaust', 'brakes', 'paint', 'wheels'],
+                "rarity": [motorRarity, suspensionRarity, transmissionRarity, exhaustRarity, brakesRarity, paintRarity, wheelsRarity],
+                "price": [motorPrice, suspensionPrice, transmissionPrice, exhaustPrice, brakesPrice, paintPrice, wheelsPrice]
             }
             
         }
@@ -154,14 +154,14 @@ export default function Admin() {
                     </label>
                 </div>
                 <div class="part">
-                    <p>Breaks</p>
+                    <p>brakes</p>
                     <label>
                         <p>Rarity</p>
-                        <input type="text" defaultValue="0" onChange={e => setBreaksRarity(e.target.value)}/>
+                        <input type="text" defaultValue="0" onChange={e => setbrakesRarity(e.target.value)}/>
                     </label>
                     <label>
                         <p>Price</p>
-                        <input type="text" defaultValue="0" onChange={e => setBreaksPrice(e.target.value)}/>
+                        <input type="text" defaultValue="0" onChange={e => setbrakesPrice(e.target.value)}/>
                     </label>
                 </div>
                 <div class="part">

@@ -22,7 +22,7 @@ router.post('/claimAuction', (req, res) => {
                 path: 'car',
                 model: 'car',
                 populate: {
-                    path: 'status.motor status.suspension status.transmission status.breaks status.paint status.exhaust status.wheels',
+                    path: 'status.motor status.suspension status.transmission status.brakes status.paint status.exhaust status.wheels',
                     model: 'part'
                 }
             }
@@ -37,7 +37,7 @@ router.post('/claimAuction', (req, res) => {
                         if(bid.car.status.motor !== null) user.partsInventory.push(bid.car.status.motor)
                         if(bid.car.status.suspension !== null) user.partsInventory.push(bid.car.status.suspension)
                         if(bid.car.status.transmission !== null) user.partsInventory.push(bid.car.status.transmission)
-                        if(bid.car.status.breaks !== null) user.partsInventory.push(bid.car.status.breaks)
+                        if(bid.car.status.brakes !== null) user.partsInventory.push(bid.car.status.brakes)
                         if(bid.car.status.paint !== null) user.partsInventory.push(bid.car.status.paint)
                         if(bid.car.status.exhaust !== null) user.partsInventory.push(bid.car.status.exhaust)
                         if(bid.car.status.wheels !== null) user.partsInventory.push(bid.car.status.wheels)

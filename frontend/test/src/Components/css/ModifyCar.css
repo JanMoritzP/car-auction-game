@@ -20,37 +20,162 @@
 }
 
 .motorShape, .motorShapeAlt {
+    position: absolute;
+    background-size: contain;
+    background-repeat: no-repeat;
+    width: 6rem;
+    height: 6rem;
+    left: 69%;
+    bottom: 32%;
+}
 
+.motorShape {
+    background-image: url('./../pics/engine/cag_blue_engine.png');
+    opacity: 1;
+    transition: transform ease-out 500ms, opacity ease-in 500ms,
+        left ease-out 500ms, bottom ease-out 500ms;
+    transform-origin: center;
+}
+
+.motorShapeAlt {
+    background-image: url('./../pics/engine/cag_blue_engine_blur.png');
+    opacity: 0;
+    transition: transform ease-out 500ms, opacity ease-out 2s;
+    transform-origin: center;
 }
 
 .transmissionShape, .transmissionShapeAlt {
-    
+    position: absolute;
+    background-size: contain;
+    background-repeat: no-repeat;
+    width: 6rem;
+    height: 6rem;
+    bottom: 28%;
+    left: 51%;
+}
+
+.transmissionShape {
+    background-image: url('./../pics/transmission/cag_blue_transmission.png');
+    opacity: 1;
+    transition: transform ease-out 500ms, opacity ease-in 500ms,
+        left ease-out 500ms, bottom ease-out 500ms;
+    transform-origin: center;
+}
+
+.transmissionShapeAlt {
+    background-image: url('./../pics/transmission/cag_blue_transmission_blur.png');
+    opacity: 0;
+    transition: transform ease-out 500ms, opacity ease-out 2s;
+    transform-origin: center;
 }
 
 .suspensionShape, .suspensionShapeAlt {
-    
+    position: absolute;
+    background-size: contain;
+    background-repeat: no-repeat;
+    width: 6rem;
+    height: 6rem;
+    bottom: 27%;
+    left: 38%;  
+}
+
+.suspensionShape {
+    background-image: url('./../pics/suspension/cag_blue_suspension.png');
+    opacity: 1;
+    transition: transform ease-out 500ms, opacity ease-in 500ms,
+        left ease-out 500ms, bottom ease-out 500ms;
+    transform-origin: center;
+}
+
+.suspensionShapeAlt {
+    background-image: url('./../pics/suspension/cag_blue_suspension_blur.png');
+    opacity: 0;
+    transition: transform ease-out 500ms, opacity ease-out 2s;
+    transform-origin: center;
 }
 
 .exhaustShape, .exhaustShapeAlt {
-    
+    position: absolute;
+    background-size: contain;
+    background-repeat: no-repeat;
+    width: 6rem;
+    height: 6rem;
+    bottom: 18%;
+    left: -3%;
+}
+
+.exhaustShape {
+    background-image: url('./../pics/exhaust/cag_blue_exhaust.png');
+    opacity: 1;
+    transition: transform ease-out 500ms, opacity ease-in 500ms,
+        left ease-out 500ms, bottom ease-out 500ms;
+    transform-origin: center;
+}
+
+.exhaustShapeAlt {
+    background-image: url('./../pics/exhaust/cag_blue_exhaust_blur.png');
+    opacity: 0;
+    transition: transform ease-out 500ms, opacity ease-out 2s;
+    transform-origin: center;
 }
 
 .paintShape, .paintShapeAlt {
-    
+    position: absolute;
+    background-size: contain;
+    background-repeat: no-repeat;
+    width: 6rem;
+    height: 6rem;
+    left: 37%;
+    bottom: 70%;
 }
 
-.breaksShape, .breaksShapeAlt {
-    
+.paintShape {
+    background-image: url('./../pics/paint/cag_blue_paint.png');
+    opacity: 1;
+    transition: transform ease-out 500ms, opacity ease-in 500ms,
+        left ease-out 500ms, bottom ease-out 500ms;
+    transform-origin: center;
+}
+
+.paintShapeAlt {
+    background-image: url('./../pics/paint/cag_blue_paint_blur.png');
+    opacity: 0;
+    transition: transform ease-out 500ms, opacity ease-out 2s;
+    transform-origin: center;
+}
+
+.brakesShape, .brakesShapeAlt {
+    position: absolute;
+    background-size: contain;
+    background-repeat: no-repeat;
+    width: 6rem;
+    height: 6rem;
+    bottom: 25%;
+    left: 24%;
+}
+
+.brakesShape {
+    background-image: url('./../pics/brakes/cag_blue_brakes.png');
+    opacity: 1;
+    transition: transform ease-out 500ms, opacity ease-in 500ms,
+        left ease-out 500ms, bottom ease-out 500ms;
+    transform-origin: center;
+}
+
+.brakesShapeAlt {
+    background-image: url('./../pics/brakes/cag_blue_brakes_blur.png');
+    opacity: 0;
+    transition: transform ease-out 500ms, opacity ease-out 2s;
+    transform-origin: center;
 }
 
 .wheelsShape1, .wheelsShape2 {
     position: absolute;
     background-size: contain;
     background-repeat: no-repeat;
-    background-image: url('./../pics/cag_wheel_blue.png');
+    background-image: url('./../pics/wheels/cag_wheel_blue.png');
     width: 6rem;
     height: 6rem;
-    z-index: 1;
     opacity: 1;
     transition: transform ease-out 500ms, opacity ease-in 500ms,
         left ease-out 500ms, bottom ease-out 500ms;
@@ -61,40 +186,37 @@
     width: 6rem;
     height: 6rem;
     position: absolute;
-    background-image: url('./../pics/cag_wheel_blue_glow.png');
+    background-image: url('./../pics/wheels/cag_wheel_blue_blur.png');
     background-size: contain;
     background-repeat: no-repeat;
-    z-index: 1;
     opacity: 0;
-    transition: all ease-out 500ms;
+    transition: transform ease-out 500ms, opacity ease-out 2s;
     transform-origin: center;
 }
 
 .wheelsShape1, .wheelsShape1Alt {
-    left: 13%;
+    left: 14%;
     bottom: 15%;
 }
 
 .wheelsShape2, .wheelsShape2Alt {
-    left: 60%;
+    left: 61%;
     bottom: 15%;    
 }
 
-.altWheelsHover {
+.altPartsHover {
     opacity: 1;
     transform-origin: center;
     transform: scale(1.2);
-    transition: all ease-out 500ms;
+    transition: transform ease-out 500ms, opacity ease-out 500ms;
 }
 
-.wheelsHover {
+.partsHover {
     opacity: 0;
     transform-origin: center;
     transform: scale(1.2); 
-    transition: transform ease-out 500ms, opacity ease-in 500ms; 
+    transition: transform ease-out 500ms, opacity ease-out 1s; 
 }
-
-
 
 .modifyCarSaveButton {
     position: absolute;
@@ -111,3 +233,26 @@
     width: 8rem;
     height: 5rem;
 }
+
+.modifyCarContextMenu {
+    display: block;
+    background-color: cadetblue;
+    position: absolute;
+    transform-origin: left bottom;
+    transform: scale(0);
+    transition: transform 1s;
+    border-radius: 2rem;
+    width: 20vw;
+    height: 20vh;
+}
+
+.modifyCarContextMenu button {
+    position: absolute;
+    right: 5%;
+    top: 5%;
+}
+
+.modifyCarContextMenuClicked {
+    transform: scale(1);
+}
+

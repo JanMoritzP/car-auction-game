@@ -11,8 +11,8 @@ router.use((req, res, next) => {
 
 const User = require('./../Schema/Users')
 
-router.post('/getCarInfo').populate({path: 'carInventory', model: 'car'}).exec((req, res) => {
-    User.findOne({token: req.body.token}, (err, user) => {
+router.post('/getCarInfo', (req, res) => {
+    User.findOne({token: req.body.token}).populate({path: 'carInventory', model: 'car'}).exec((err, user) => {
         if(err) return res.status(400).send({message: err})
         else if(!user) return res.status(400).send({message: "Token not recognized"})
         else {
@@ -30,7 +30,7 @@ router.post('/getCarInfo').populate({path: 'carInventory', model: 'car'}).exec((
 })
 
 function partsToArray(status) {
-    return [status.motor, status.suspension, status.transmission, status.breaks, status.paint, status.exhaust, status.wheels]
+    return [status.motor, status.suspension, status.transmission, status.brakes, status.paint, status.exhaust, status.wheels]
 }
 
 module.exports = router

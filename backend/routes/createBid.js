@@ -46,8 +46,8 @@ router.post('/createBid', (req, res) => {
             case 'exhaust':
                 newCar.status.exhaust = newParts[i]                
                 break;
-            case 'breaks':
-                newCar.status.breaks = newParts[i]                
+            case 'brakes':
+                newCar.status.brakes = newParts[i]                
                 break;
             case 'paint':
                 newCar.status.paint = newParts[i]                
